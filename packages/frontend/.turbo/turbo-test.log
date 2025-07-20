@@ -216,3 +216,57 @@ Cleaning up frontend test environment...
 
 [31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply custom className
 [31m[1mError[22m: Invalid Chai property: toHaveClass[39m
+[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m103:18[22m[39m
+    [90m101| [39m    
+    [90m102| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
+    [90m103| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'custom-class'[39m)[33m;[39m
+    [90m   | [39m                 [31m^[39m
+    [90m104| [39m  })[33m;[39m
+    [90m105| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/16]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould pass through other props
+[31m[1mError[22m: Invalid Chai property: toHaveAttribute[39m
+[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m110:18[22m[39m
+    [90m108| [39m    
+    [90m109| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByTestId[39m([32m'test-button'[39m)[33m;[39m
+    [90m110| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveAttribute[39m([32m'aria-label'[39m[33m,[39m [32m'Test button'[39m)[33m;[39m
+    [90m   | [39m                 [31m^[39m
+    [90m111| [39m  })[33m;[39m
+    [90m112| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/16]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould have focus styles
+[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
+[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m117:18[22m[39m
+    [90m115| [39m    
+    [90m116| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
+    [90m117| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'focus:outline-none'[39m[33m,[39m [32m'focus:ring-2'[39m[33m,[39m [32m'[39m…
+    [90m   | [39m                 [31m^[39m
+    [90m118| [39m  })[33m;[39m
+    [90m119| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/16]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould have disabled styles
+[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
+[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m124:18[22m[39m
+    [90m122| [39m    
+    [90m123| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
+    [90m124| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'disabled:opacity-50'[39m[33m,[39m [32m'disabled:cursor[39m…
+    [90m   | [39m                 [31m^[39m
+    [90m125| [39m  })[33m;[39m
+    [90m126| [39m})[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m16 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 12:59:01
+[2m   Duration [22m 838ms[2m (transform 58ms, setup 26ms, collect 127ms, tests 101ms, environment 284ms, prepare 142ms)[22m
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[?25h

@@ -360,3 +360,105 @@
 
 [31m[1m[7m FAIL [27m[22m[39m src/__tests__/index.test.ts[2m > [22mShared Package[2m > [22mValidation Functions[2m > [22mvalidateUser[2m > [22mshould throw ValidationError for invalid user
 [31m[1mAssertionError[22m: expected error to be instance of ValidationError[39m
+
+- Expected: 
+[Function ValidationError]
+
++ Received: 
+[ZodError: [
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": [
+      "id"
+    ]
+  },
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": [
+      "name"
+    ]
+  },
+  {
+    "validation": "email",
+    "code": "invalid_string",
+    "message": "Invalid email",
+    "path": [
+      "email"
+    ]
+  },
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": [
+      "preferences",
+      "language"
+    ]
+  },
+  {
+    "code": "too_small",
+    "minimum": 0.5,
+    "type": "number",
+    "inclusive": true,
+    "exact": false,
+    "message": "Number must be greater than or equal to 0.5",
+    "path": [
+      "preferences",
+      "voiceSpeed"
+    ]
+  },
+  {
+    "code": "too_small",
+    "minimum": 1,
+    "type": "string",
+    "inclusive": true,
+    "exact": false,
+    "message": "String must contain at least 1 character(s)",
+    "path": [
+      "preferences",
+      "voiceType"
+    ]
+  },
+  {
+    "code": "invalid_type",
+    "expected": "boolean",
+    "received": "string",
+    "path": [
+      "preferences",
+      "notifications"
+    ],
+    "message": "Expected boolean, received string"
+  }
+]]
+
+[36m [2m❯[22m src/__tests__/index.test.ts:[2m133:49[22m[39m
+    [90m131| [39m
+    [90m132| [39m      [34mit[39m([32m'should throw ValidationError for invalid user'[39m[33m,[39m () [33m=>[39m {
+    [90m133| [39m        [34mexpect[39m(() [33m=>[39m [34mvalidateUser[39m(invalidUser))[33m.[39m[34mtoThrow[39m([33mValidationErro[39m…
+    [90m   | [39m                                                [31m^[39m
+    [90m134| [39m      })[33m;[39m
+    [90m135| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m35 passed[39m[22m[90m (39)[39m
+[2m   Start at [22m 12:59:01
+[2m   Duration [22m 318ms[2m (transform 65ms, setup 0ms, collect 84ms, tests 21ms, environment 0ms, prepare 60ms)[22m
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[?25h

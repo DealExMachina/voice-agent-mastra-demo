@@ -1,0 +1,43 @@
+
+
+> @voice-agent-mastra-demo/backend@1.0.0 test /workspace/packages/backend
+> vitest
+
+
+[1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/workspace/packages/backend[39m
+
+[90mstderr[2m | src/__tests__/database.test.ts
+[22m[39m❌ Environment validation failed:
+{
+  _errors: [],
+  LOG_LEVEL: {
+    _errors: [
+      "Invalid enum value. Expected 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace', received 'silent'"
+    ]
+  }
+}
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: process.exit unexpectedly called with "1"[39m
+[36m [2m❯[22m src/config/env.ts:[2m48:11[22m[39m
+    [90m 46| [39m  console[33m.[39m[34merror[39m([32m'❌ Environment validation failed:'[39m)[33m;[39m
+    [90m 47| [39m  console[33m.[39m[34merror[39m(envParseResult[33m.[39merror[33m.[39m[34mformat[39m())[33m;[39m
+    [90m 48| [39m  process[33m.[39m[34mexit[39m([34m1[39m)[33m;[39m
+    [90m   | [39m          [31m^[39m
+    [90m 49| [39m}
+    [90m 50| [39m
+[90m [2m❯[22m src/services/database.ts:[2m3:31[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 12:59:01
+[2m   Duration [22m 382ms[2m (transform 125ms, setup 63ms, collect 0ms, tests 0ms, environment 0ms, prepare 54ms)[22m
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
