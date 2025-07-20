@@ -212,8 +212,3 @@ Cleaning up frontend test environment...
     [90m 96| [39m    [34mexpect[39m(button[33m.[39m[34mquerySelector[39m([32m'svg'[39m))[33m.[39m[34mtoHaveClass[39m([32m'animate-spin'[39m)[33m;[39m
     [90m 97| [39m  })[33m;[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply custom className
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m103:18[22m[39m
