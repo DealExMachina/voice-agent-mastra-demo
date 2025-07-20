@@ -4,8 +4,17 @@ import { mockSessions, mockMessages, mockUsers, createTestSession, createTestMes
 
 // Mock DuckDB completely
 vi.mock('duckdb', () => ({
-  Database: vi.fn(),
-  Connection: vi.fn(),
+  Database: vi.fn().mockImplementation(() => ({
+    exec: vi.fn(),
+    all: vi.fn(),
+    close: vi.fn(),
+  })),
+  Connection: vi.fn().mockImplementation(() => ({
+    exec: vi.fn(),
+    all: vi.fn().mockResolvedValue([]),
+    run: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn(),
+  })),
 }));
 
 // Mock the logger
@@ -27,11 +36,6 @@ describe('DatabaseService', () => {
     
     // Create a simple mock for the database service
     dbService = new DatabaseService();
-    
-    // Mock the internal methods to avoid actual database calls
-    vi.spyOn(dbService as any, 'run').mockResolvedValue(undefined);
-    vi.spyOn(dbService as any, 'all').mockResolvedValue([]);
-    vi.spyOn(dbService as any, 'get').mockResolvedValue(null);
   });
 
   afterEach(async () => {

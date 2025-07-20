@@ -64,8 +64,8 @@
        [32m✓[39m should have correct session timeout
        [32m✓[39m should have correct max message length
        [32m✓[39m should have correct max session messages
-[?25l[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [31m❯[39m [2msrc/__tests__/[22mindex[2m.test.ts[22m[2m (39)[22m
-   [31m❯[39m Shared Package[2m (39)[22m
+[?25l[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m✓[39m [2msrc/__tests__/[22mindex[2m.test.ts[22m[2m (39)[22m
+   [32m✓[39m Shared Package[2m (39)[22m
      [32m✓[39m Utility Functions[2m (3)[22m
        [32m✓[39m generateId[2m (1)[22m
          [32m✓[39m should generate a unique string ID
@@ -73,22 +73,22 @@
          [32m✓[39m should format date to ISO string
        [32m✓[39m createTimestamp[2m (1)[22m
          [32m✓[39m should create a new Date object
-     [31m❯[39m Validation Functions[2m (12)[22m
-       [31m❯[39m validateVoiceMessage[2m (3)[22m
+     [32m✓[39m Validation Functions[2m (12)[22m
+       [32m✓[39m validateVoiceMessage[2m (3)[22m
          [32m✓[39m should validate a valid voice message
-         [31m×[39m should throw ValidationError for invalid voice message
+         [32m✓[39m should throw ValidationError for invalid voice message
          [32m✓[39m should validate all mock voice messages
-       [31m❯[39m validateAgentResponse[2m (3)[22m
+       [32m✓[39m validateAgentResponse[2m (3)[22m
          [32m✓[39m should validate a valid agent response
-         [31m×[39m should throw ValidationError for invalid agent response
+         [32m✓[39m should throw ValidationError for invalid agent response
          [32m✓[39m should validate all mock agent responses
-       [31m❯[39m validateSession[2m (3)[22m
+       [32m✓[39m validateSession[2m (3)[22m
          [32m✓[39m should validate a valid session
-         [31m×[39m should throw ValidationError for invalid session
+         [32m✓[39m should throw ValidationError for invalid session
          [32m✓[39m should validate all mock sessions
-       [31m❯[39m validateUser[2m (3)[22m
+       [32m✓[39m validateUser[2m (3)[22m
          [32m✓[39m should validate a valid user
-         [31m×[39m should throw ValidationError for invalid user
+         [32m✓[39m should throw ValidationError for invalid user
          [32m✓[39m should validate all mock users
      [32m✓[39m Type Guards[2m (9)[22m
        [32m✓[39m isVoiceMessage[2m (3)[22m
@@ -128,337 +128,11 @@
        [32m✓[39m should have correct max message length
        [32m✓[39m should have correct max session messages
 
-[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 4 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m39 passed[39m[22m[90m (39)[39m
+[2m   Start at [22m 15:54:43
+[2m   Duration [22m 378ms[2m (transform 78ms, setup 0ms, collect 118ms, tests 19ms, environment 0ms, prepare 77ms)[22m
 
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/index.test.ts[2m > [22mShared Package[2m > [22mValidation Functions[2m > [22mvalidateVoiceMessage[2m > [22mshould throw ValidationError for invalid voice message
-[31m[1mAssertionError[22m: expected error to be instance of ValidationError[39m
-
-- Expected: 
-[Function ValidationError]
-
-+ Received: 
-[ZodError: [
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "id"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "content"
-    ]
-  },
-  {
-    "code": "invalid_type",
-    "expected": "date",
-    "received": "string",
-    "path": [
-      "timestamp"
-    ],
-    "message": "Expected date, received string"
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "userId"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "sessionId"
-    ]
-  },
-  {
-    "received": "invalid",
-    "code": "invalid_literal",
-    "expected": "user",
-    "path": [
-      "type"
-    ],
-    "message": "Invalid literal value, expected \"user\""
-  }
-]]
-
-[36m [2m❯[22m src/__tests__/index.test.ts:[2m82:65[22m[39m
-    [90m 80| [39m
-    [90m 81| [39m      [34mit[39m([32m'should throw ValidationError for invalid voice message'[39m[33m,[39m () …
-    [90m 82| [39m        [34mexpect[39m(() [33m=>[39m [34mvalidateVoiceMessage[39m(invalidVoiceMessage))[33m.[39m[34mtoThro[39m…
-    [90m   | [39m                                                                [31m^[39m
-    [90m 83| [39m      })[33m;[39m
-    [90m 84| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/index.test.ts[2m > [22mShared Package[2m > [22mValidation Functions[2m > [22mvalidateAgentResponse[2m > [22mshould throw ValidationError for invalid agent response
-[31m[1mAssertionError[22m: expected error to be instance of ValidationError[39m
-
-- Expected: 
-[Function ValidationError]
-
-+ Received: 
-[ZodError: [
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "id"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "content"
-    ]
-  },
-  {
-    "code": "invalid_type",
-    "expected": "date",
-    "received": "string",
-    "path": [
-      "timestamp"
-    ],
-    "message": "Expected date, received string"
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "sessionId"
-    ]
-  },
-  {
-    "code": "too_big",
-    "maximum": 1,
-    "type": "number",
-    "inclusive": true,
-    "exact": false,
-    "message": "Number must be less than or equal to 1",
-    "path": [
-      "confidence"
-    ]
-  },
-  {
-    "received": "invalid",
-    "code": "invalid_literal",
-    "expected": "agent",
-    "path": [
-      "type"
-    ],
-    "message": "Invalid literal value, expected \"agent\""
-  }
-]]
-
-[36m [2m❯[22m src/__tests__/index.test.ts:[2m99:67[22m[39m
-    [90m 97| [39m
-    [90m 98| [39m      [34mit[39m([32m'should throw ValidationError for invalid agent response'[39m[33m,[39m ()…
-    [90m 99| [39m        [34mexpect[39m(() [33m=>[39m [34mvalidateAgentResponse[39m(invalidAgentResponse))[33m.[39m[34mtoTh[39m…
-    [90m   | [39m                                                                  [31m^[39m
-    [90m100| [39m      })[33m;[39m
-    [90m101| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/index.test.ts[2m > [22mShared Package[2m > [22mValidation Functions[2m > [22mvalidateSession[2m > [22mshould throw ValidationError for invalid session
-[31m[1mAssertionError[22m: expected error to be instance of ValidationError[39m
-
-- Expected: 
-[Function ValidationError]
-
-+ Received: 
-[ZodError: [
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "id"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "userId"
-    ]
-  },
-  {
-    "code": "invalid_type",
-    "expected": "date",
-    "received": "string",
-    "path": [
-      "startTime"
-    ],
-    "message": "Expected date, received string"
-  },
-  {
-    "received": "invalid-status",
-    "code": "invalid_enum_value",
-    "options": [
-      "active",
-      "ended",
-      "paused"
-    ],
-    "path": [
-      "status"
-    ],
-    "message": "Invalid enum value. Expected 'active' | 'ended' | 'paused', received 'invalid-status'"
-  }
-]]
-
-[36m [2m❯[22m src/__tests__/index.test.ts:[2m116:55[22m[39m
-    [90m114| [39m
-    [90m115| [39m      [34mit[39m([32m'should throw ValidationError for invalid session'[39m[33m,[39m () [33m=>[39m {
-    [90m116| [39m        [34mexpect[39m(() [33m=>[39m [34mvalidateSession[39m(invalidSession))[33m.[39m[34mtoThrow[39m([33mValidati[39m…
-    [90m   | [39m                                                      [31m^[39m
-    [90m117| [39m      })[33m;[39m
-    [90m118| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/index.test.ts[2m > [22mShared Package[2m > [22mValidation Functions[2m > [22mvalidateUser[2m > [22mshould throw ValidationError for invalid user
-[31m[1mAssertionError[22m: expected error to be instance of ValidationError[39m
-
-- Expected: 
-[Function ValidationError]
-
-+ Received: 
-[ZodError: [
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "id"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "name"
-    ]
-  },
-  {
-    "validation": "email",
-    "code": "invalid_string",
-    "message": "Invalid email",
-    "path": [
-      "email"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "preferences",
-      "language"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 0.5,
-    "type": "number",
-    "inclusive": true,
-    "exact": false,
-    "message": "Number must be greater than or equal to 0.5",
-    "path": [
-      "preferences",
-      "voiceSpeed"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "preferences",
-      "voiceType"
-    ]
-  },
-  {
-    "code": "invalid_type",
-    "expected": "boolean",
-    "received": "string",
-    "path": [
-      "preferences",
-      "notifications"
-    ],
-    "message": "Expected boolean, received string"
-  }
-]]
-
-[36m [2m❯[22m src/__tests__/index.test.ts:[2m133:49[22m[39m
-    [90m131| [39m
-    [90m132| [39m      [34mit[39m([32m'should throw ValidationError for invalid user'[39m[33m,[39m () [33m=>[39m {
-    [90m133| [39m        [34mexpect[39m(() [33m=>[39m [34mvalidateUser[39m(invalidUser))[33m.[39m[34mtoThrow[39m([33mValidationErro[39m…
-    [90m   | [39m                                                [31m^[39m
-    [90m134| [39m      })[33m;[39m
-    [90m135| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
-
-[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
-[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m35 passed[39m[22m[90m (39)[39m
-[2m   Start at [22m 13:07:55
-[2m   Duration [22m 326ms[2m (transform 56ms, setup 0ms, collect 90ms, tests 25ms, environment 0ms, prepare 54ms)[22m
-
-[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+[1m[7m[32m PASS [39m[27m[22m [32mWaiting for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
 [?25h

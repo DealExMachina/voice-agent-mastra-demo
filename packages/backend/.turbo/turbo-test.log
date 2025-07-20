@@ -6,38 +6,48 @@
 
 [1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/workspace/packages/backend[39m
 
-[90mstderr[2m | src/__tests__/database.test.ts
-[22m[39m❌ Environment validation failed:
-{
-  _errors: [],
-  LOG_LEVEL: {
-    _errors: [
-      "Invalid enum value. Expected 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace', received 'silent'"
-    ]
-  }
-}
+[90mstdout[2m | src/__tests__/database.test.ts
+[22m[39mSetting up test environment...
+Cleaning up test environment...
 
- [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+[?25l [32m✓[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (10)[22m
+   [32m✓[39m DatabaseService[2m (10)[22m
+     [32m✓[39m Basic Functionality[2m (3)[22m
+       [32m✓[39m should be able to create a DatabaseService instance
+       [32m✓[39m should have initialize method
+       [32m✓[39m should have close method
+     [32m✓[39m Session Operations[2m (3)[22m
+       [32m✓[39m should have createSession method
+       [32m✓[39m should have getSession method
+       [32m✓[39m should have updateSession method
+     [32m✓[39m Message Operations[2m (2)[22m
+       [32m✓[39m should have addMessage method
+       [32m✓[39m should have getSessionMessages method
+     [32m✓[39m User Operations[2m (2)[22m
+       [32m✓[39m should have createUser method
+       [32m✓[39m should have getUser method
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m✓[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (10)[22m
+   [32m✓[39m DatabaseService[2m (10)[22m
+     [32m✓[39m Basic Functionality[2m (3)[22m
+       [32m✓[39m should be able to create a DatabaseService instance
+       [32m✓[39m should have initialize method
+       [32m✓[39m should have close method
+     [32m✓[39m Session Operations[2m (3)[22m
+       [32m✓[39m should have createSession method
+       [32m✓[39m should have getSession method
+       [32m✓[39m should have updateSession method
+     [32m✓[39m Message Operations[2m (2)[22m
+       [32m✓[39m should have addMessage method
+       [32m✓[39m should have getSessionMessages method
+     [32m✓[39m User Operations[2m (2)[22m
+       [32m✓[39m should have createUser method
+       [32m✓[39m should have getUser method
 
-[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m10 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 15:54:43
+[2m   Duration [22m 340ms[2m (transform 90ms, setup 32ms, collect 111ms, tests 6ms, environment 0ms, prepare 60ms)[22m
 
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
-[31m[1mError[22m: process.exit unexpectedly called with "1"[39m
-[36m [2m❯[22m src/config/env.ts:[2m48:11[22m[39m
-    [90m 46| [39m  console[33m.[39m[34merror[39m([32m'❌ Environment validation failed:'[39m)[33m;[39m
-    [90m 47| [39m  console[33m.[39m[34merror[39m(envParseResult[33m.[39merror[33m.[39m[34mformat[39m())[33m;[39m
-    [90m 48| [39m  process[33m.[39m[34mexit[39m([34m1[39m)[33m;[39m
-    [90m   | [39m          [31m^[39m
-    [90m 49| [39m}
-    [90m 50| [39m
-[90m [2m❯[22m src/services/database.ts:[2m3:31[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
-
-[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
-[2m      Tests [22m [2mno tests[22m
-[2m   Start at [22m 13:07:55
-[2m   Duration [22m 342ms[2m (transform 106ms, setup 18ms, collect 0ms, tests 0ms, environment 0ms, prepare 70ms)[22m
-
-[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+[1m[7m[32m PASS [39m[27m[22m [32mWaiting for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[?25h
