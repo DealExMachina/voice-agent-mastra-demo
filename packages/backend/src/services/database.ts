@@ -4,28 +4,180 @@ import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 import type { Session, Message, User } from '@voice-agent-mastra-demo/shared';
 
+interface DatabaseConfig {
+  path: string;
+  maxConnections: number;
+  enableWAL: boolean;
+  enableCompression: boolean;
+  memoryLimit: string;
+  tempDirectory?: string;
+}
+
+interface QueryResult<T = any> {
+  data: T[];
+  rowCount: number;
+  executionTime: number;
+}
+
 export class DatabaseService {
   private db: duckdb.Database;
-  private connection: duckdb.Connection;
-  private run: (sql: string, params?: unknown[]) => Promise<unknown>;
-  private all: (sql: string, params?: unknown[]) => Promise<unknown[]>;
-  private get: (sql: string, params?: unknown[]) => Promise<unknown>;
+  private connectionPool: duckdb.Connection[] = [];
+  private currentConnectionIndex = 0;
+  private config: DatabaseConfig;
+  private isInitialized = false;
+  private preparedStatements = new Map<string, duckdb.Statement>();
 
-  constructor() {
-    this.db = new duckdb.Database(config.DATABASE_PATH);
-    this.connection = new duckdb.Connection(this.db);
-    
-    // Promisify database methods
-    this.run = promisify(this.connection.run.bind(this.connection));
-    this.all = promisify(this.connection.all.bind(this.connection));
-    // Use all() and take first result for get operations
-    this.get = async (sql: string, params?: unknown[]) => {
-      const results = await this.all(sql, params);
-      return results.length > 0 ? results[0] : null;
+  constructor(config?: Partial<DatabaseConfig>) {
+    this.config = {
+      path: config?.path || config.DATABASE_PATH || ':memory:',
+      maxConnections: config?.maxConnections || 5,
+      enableWAL: config?.enableWAL || true,
+      enableCompression: config?.enableCompression || true,
+      memoryLimit: config?.memoryLimit || '1GB',
+      tempDirectory: config?.tempDirectory,
     };
+
+    // Initialize database with configuration
+    this.db = new duckdb.Database(this.config.path);
+    
+    // Configure database settings
+    this.configureDatabase();
+    
+    // Initialize connection pool
+    this.initializeConnectionPool();
+  }
+
+  private configureDatabase(): void {
+    try {
+      // Enable WAL mode for better concurrency
+      if (this.config.enableWAL) {
+        this.db.exec('PRAGMA journal_mode=WAL');
+      }
+
+      // Set memory limit
+      this.db.exec(`PRAGMA memory_limit='${this.config.memoryLimit}'`);
+
+      // Enable compression
+      if (this.config.enableCompression) {
+        this.db.exec('PRAGMA compression=zstd');
+      }
+
+      // Set temp directory if specified
+      if (this.config.tempDirectory) {
+        this.db.exec(`PRAGMA temp_directory='${this.config.tempDirectory}'`);
+      }
+
+      // Optimize for performance
+      this.db.exec('PRAGMA synchronous=NORMAL');
+      this.db.exec('PRAGMA cache_size=10000');
+      this.db.exec('PRAGMA page_size=4096');
+
+      logger.info('Database configured successfully');
+    } catch (error) {
+      logger.error('Failed to configure database:', error);
+      throw error;
+    }
+  }
+
+  private initializeConnectionPool(): void {
+    try {
+      for (let i = 0; i < this.config.maxConnections; i++) {
+        const connection = new duckdb.Connection(this.db);
+        this.connectionPool.push(connection);
+      }
+      logger.info(`Connection pool initialized with ${this.config.maxConnections} connections`);
+    } catch (error) {
+      logger.error('Failed to initialize connection pool:', error);
+      throw error;
+    }
+  }
+
+  private getConnection(): duckdb.Connection {
+    const connection = this.connectionPool[this.currentConnectionIndex];
+    this.currentConnectionIndex = (this.currentConnectionIndex + 1) % this.config.maxConnections;
+    return connection;
+  }
+
+  private async executeQuery<T = any>(
+    sql: string, 
+    params: unknown[] = [], 
+    connection?: duckdb.Connection
+  ): Promise<QueryResult<T>> {
+    const conn = connection || this.getConnection();
+    const startTime = Date.now();
+
+    try {
+      const all = promisify(conn.all.bind(conn));
+      const data = await all(sql, params);
+      const executionTime = Date.now() - startTime;
+
+      return {
+        data,
+        rowCount: data.length,
+        executionTime,
+      };
+    } catch (error) {
+      logger.error('Query execution failed:', { sql, params, error });
+      throw new Error(`Database query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async executeStatement(
+    sql: string, 
+    params: unknown[] = [], 
+    connection?: duckdb.Connection
+  ): Promise<{ changes: number; executionTime: number }> {
+    const conn = connection || this.getConnection();
+    const startTime = Date.now();
+
+    try {
+      const run = promisify(conn.run.bind(conn));
+      const result = await run(sql, params) as any;
+      const executionTime = Date.now() - startTime;
+
+      return {
+        changes: result.changes || 0,
+        executionTime,
+      };
+    } catch (error) {
+      logger.error('Statement execution failed:', { sql, params, error });
+      throw new Error(`Database statement failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async executeTransaction<T>(
+    operations: (connection: duckdb.Connection) => Promise<T>
+  ): Promise<T> {
+    const connection = this.getConnection();
+    
+    try {
+      // Start transaction
+      await promisify(connection.run.bind(connection))('BEGIN TRANSACTION');
+      
+      // Execute operations
+      const result = await operations(connection);
+      
+      // Commit transaction
+      await promisify(connection.run.bind(connection))('COMMIT');
+      
+      return result;
+    } catch (error) {
+      // Rollback on error
+      try {
+        await promisify(connection.run.bind(connection))('ROLLBACK');
+      } catch (rollbackError) {
+        logger.error('Failed to rollback transaction:', rollbackError);
+      }
+      throw error;
+    }
   }
 
   async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      logger.warn('Database already initialized');
+      return;
+    }
+
     try {
       logger.info('Initializing database...');
       
@@ -35,6 +187,10 @@ export class DatabaseService {
       // Create indexes for better performance
       await this.createIndexes();
       
+      // Create prepared statements
+      await this.prepareStatements();
+      
+      this.isInitialized = true;
       logger.info('Database initialized successfully');
     } catch (error) {
       logger.error('Failed to initialize database:', error);
@@ -43,9 +199,9 @@ export class DatabaseService {
   }
 
   private async createTables(): Promise<void> {
-    // Sessions table
-    await this.run(`
-      CREATE TABLE IF NOT EXISTS sessions (
+    const tables = [
+      // Sessions table with improved schema
+      `CREATE TABLE IF NOT EXISTS sessions (
         id VARCHAR PRIMARY KEY,
         user_id VARCHAR NOT NULL,
         start_time TIMESTAMP NOT NULL,
@@ -53,13 +209,14 @@ export class DatabaseService {
         status VARCHAR NOT NULL CHECK (status IN ('active', 'ended', 'paused')),
         metadata JSON,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_sessions_user_id (user_id),
+        INDEX idx_sessions_status (status),
+        INDEX idx_sessions_start_time (start_time)
+      )`,
 
-    // Messages table
-    await this.run(`
-      CREATE TABLE IF NOT EXISTS messages (
+      // Messages table with improved schema
+      `CREATE TABLE IF NOT EXISTS messages (
         id VARCHAR PRIMARY KEY,
         session_id VARCHAR NOT NULL,
         user_id VARCHAR NOT NULL,
@@ -69,47 +226,111 @@ export class DatabaseService {
         confidence DECIMAL(3,2),
         metadata JSON,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
-      )
-    `);
+        FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+        INDEX idx_messages_session_id (session_id),
+        INDEX idx_messages_timestamp (timestamp),
+        INDEX idx_messages_type (type),
+        INDEX idx_messages_user_id (user_id)
+      )`,
 
-    // Users table
-    await this.run(`
-      CREATE TABLE IF NOT EXISTS users (
+      // Users table with improved schema
+      `CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY,
         name VARCHAR NOT NULL,
         email VARCHAR UNIQUE NOT NULL,
         preferences JSON NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_users_email (email)
+      )`,
+
+      // Analytics table for performance monitoring
+      `CREATE TABLE IF NOT EXISTS analytics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type VARCHAR NOT NULL,
+        session_id VARCHAR,
+        user_id VARCHAR,
+        metadata JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_analytics_event_type (event_type),
+        INDEX idx_analytics_created_at (created_at)
+      )`
+    ];
+
+    for (const tableSql of tables) {
+      await this.executeStatement(tableSql);
+    }
   }
 
   private async createIndexes(): Promise<void> {
-    // Indexes for better query performance
-    await this.run('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)');
-    await this.run('CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status)');
-    await this.run('CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id)');
-    await this.run('CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)');
-    await this.run('CREATE INDEX IF NOT EXISTS idx_messages_type ON messages(type)');
+    // Additional indexes for better query performance
+    const indexes = [
+      'CREATE INDEX IF NOT EXISTS idx_sessions_user_status ON sessions(user_id, status)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_session_timestamp ON messages(session_id, timestamp)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_type_timestamp ON messages(type, timestamp)',
+      'CREATE INDEX IF NOT EXISTS idx_analytics_session_event ON analytics(session_id, event_type)',
+    ];
+
+    for (const indexSql of indexes) {
+      await this.executeStatement(indexSql);
+    }
   }
 
-  // Session operations
-  async createSession(session: Session): Promise<void> {
-    await this.run(`
-      INSERT INTO sessions (id, user_id, start_time, status, metadata)
-      VALUES (?, ?, ?, ?, ?)
-    `, [session.id, session.userId, session.startTime.toISOString(), session.status, JSON.stringify(session.metadata || {})]);
+  private async prepareStatements(): Promise<void> {
+    const statements = {
+      'get_session': 'SELECT * FROM sessions WHERE id = ?',
+      'get_user': 'SELECT * FROM users WHERE id = ?',
+      'get_user_by_email': 'SELECT * FROM users WHERE email = ?',
+      'get_session_messages': 'SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC',
+      'get_active_sessions': 'SELECT * FROM sessions WHERE status = ? ORDER BY start_time DESC',
+      'get_recent_messages': 'SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?',
+      'count_messages_by_session': 'SELECT COUNT(*) as count FROM messages WHERE session_id = ?',
+      'get_user_sessions': 'SELECT * FROM sessions WHERE user_id = ? ORDER BY start_time DESC',
+    };
+
+    for (const [name, sql] of Object.entries(statements)) {
+      const connection = this.getConnection();
+      const statement = connection.prepare(sql);
+      this.preparedStatements.set(name, statement);
+    }
+  }
+
+  // Enhanced Session operations
+  async createSession(session: Session): Promise<Session> {
+    return this.executeTransaction(async (connection) => {
+      await this.executeStatement(
+        `INSERT INTO sessions (id, user_id, start_time, status, metadata)
+         VALUES (?, ?, ?, ?, ?)`,
+        [
+          session.id,
+          session.userId,
+          session.startTime.toISOString(),
+          session.status,
+          JSON.stringify(session.metadata || {})
+        ],
+        connection
+      );
+
+      // Log analytics event
+      await this.executeStatement(
+        'INSERT INTO analytics (event_type, session_id, user_id, metadata) VALUES (?, ?, ?, ?)',
+        ['session_created', session.id, session.userId, JSON.stringify({ status: session.status })],
+        connection
+      );
+
+      return session;
+    });
   }
 
   async getSession(sessionId: string): Promise<Session | null> {
-    const row = await this.get(`
-      SELECT * FROM sessions WHERE id = ?
-    `, [sessionId]) as any;
+    const result = await this.executeQuery(
+      'SELECT * FROM sessions WHERE id = ?',
+      [sessionId]
+    );
 
-    if (!row) return null;
+    if (result.data.length === 0) return null;
 
+    const row = result.data[0] as any;
     return {
       id: row.id,
       userId: row.user_id,
@@ -140,21 +361,42 @@ export class DatabaseService {
     setClauses.push('updated_at = CURRENT_TIMESTAMP');
     values.push(sessionId);
 
-    await this.run(`
-      UPDATE sessions SET ${setClauses.join(', ')} WHERE id = ?
-    `, values);
+    await this.executeStatement(
+      `UPDATE sessions SET ${setClauses.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    // Log analytics event
+    await this.executeStatement(
+      'INSERT INTO analytics (event_type, session_id, metadata) VALUES (?, ?, ?)',
+      ['session_updated', sessionId, JSON.stringify(updates)]
+    );
   }
 
   async deleteSession(sessionId: string): Promise<void> {
-    await this.run('DELETE FROM sessions WHERE id = ?', [sessionId]);
+    await this.executeTransaction(async (connection) => {
+      // Log analytics event before deletion
+      await this.executeStatement(
+        'INSERT INTO analytics (event_type, session_id, metadata) VALUES (?, ?, ?)',
+        ['session_deleted', sessionId, JSON.stringify({ deleted_at: new Date().toISOString() })],
+        connection
+      );
+
+      await this.executeStatement(
+        'DELETE FROM sessions WHERE id = ?',
+        [sessionId],
+        connection
+      );
+    });
   }
 
   async getActiveSessions(): Promise<Session[]> {
-    const rows = await this.all(`
-      SELECT * FROM sessions WHERE status = 'active' ORDER BY start_time DESC
-    `);
+    const result = await this.executeQuery(
+      'SELECT * FROM sessions WHERE status = ? ORDER BY start_time DESC',
+      ['active']
+    );
 
-    return rows.map((row: any) => ({
+    return result.data.map((row: any) => ({
       id: row.id,
       userId: row.user_id,
       startTime: new Date(row.start_time),
@@ -164,32 +406,62 @@ export class DatabaseService {
     }));
   }
 
-  // Message operations
-  async addMessage(message: Message): Promise<void> {
-    const confidence = message.type === 'agent' ? (message as { confidence?: number }).confidence : null;
-    const userId = message.type === 'user' ? (message as { userId: string }).userId : 'agent';
-    
-    await this.run(`
-      INSERT INTO messages (id, session_id, user_id, content, timestamp, type, confidence, metadata)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      message.id,
-      message.sessionId,
-      userId,
-      message.content,
-      message.timestamp.toISOString(),
-      message.type,
-      confidence,
-      JSON.stringify((message as { metadata?: Record<string, unknown> }).metadata || {})
-    ]);
+  async getSessionsByUserId(userId: string): Promise<Session[]> {
+    const result = await this.executeQuery(
+      'SELECT * FROM sessions WHERE user_id = ? ORDER BY start_time DESC',
+      [userId]
+    );
+
+    return result.data.map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      startTime: new Date(row.start_time),
+      endTime: row.end_time ? new Date(row.end_time) : undefined,
+      status: row.status,
+      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+    }));
+  }
+
+  // Enhanced Message operations
+  async addMessage(message: Message): Promise<Message> {
+    return this.executeTransaction(async (connection) => {
+      const confidence = message.type === 'agent' ? (message as { confidence?: number }).confidence : null;
+      const userId = message.type === 'user' ? (message as { userId: string }).userId : 'agent';
+      
+      await this.executeStatement(
+        `INSERT INTO messages (id, session_id, user_id, content, timestamp, type, confidence, metadata)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          message.id,
+          message.sessionId,
+          userId,
+          message.content,
+          message.timestamp.toISOString(),
+          message.type,
+          confidence,
+          JSON.stringify((message as { metadata?: Record<string, unknown> }).metadata || {})
+        ],
+        connection
+      );
+
+      // Log analytics event
+      await this.executeStatement(
+        'INSERT INTO analytics (event_type, session_id, user_id, metadata) VALUES (?, ?, ?, ?)',
+        ['message_created', message.sessionId, userId, JSON.stringify({ type: message.type, content_length: message.content.length })],
+        connection
+      );
+
+      return message;
+    });
   }
 
   async getSessionMessages(sessionId: string): Promise<Message[]> {
-    const rows = await this.all(`
-      SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC
-    `, [sessionId]);
+    const result = await this.executeQuery(
+      'SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC',
+      [sessionId]
+    );
 
-    return rows.map((row: any) => ({
+    return result.data.map((row: any) => ({
       id: row.id,
       sessionId: row.session_id,
       userId: row.user_id,
@@ -202,11 +474,12 @@ export class DatabaseService {
   }
 
   async getRecentMessages(limit: number = 100): Promise<Message[]> {
-    const rows = await this.all(`
-      SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?
-    `, [limit]);
+    const result = await this.executeQuery(
+      'SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?',
+      [limit]
+    );
 
-    return rows.map((row: any) => ({
+    return result.data.map((row: any) => ({
       id: row.id,
       sessionId: row.session_id,
       userId: row.user_id,
@@ -218,21 +491,71 @@ export class DatabaseService {
     }));
   }
 
-  // User operations
-  async createUser(user: User): Promise<void> {
-    await this.run(`
-      INSERT INTO users (id, name, email, preferences)
-      VALUES (?, ?, ?, ?)
-    `, [user.id, user.name, user.email, JSON.stringify(user.preferences)]);
+  async getMessagesByType(type: 'user' | 'agent', limit: number = 100): Promise<Message[]> {
+    const result = await this.executeQuery(
+      'SELECT * FROM messages WHERE type = ? ORDER BY timestamp DESC LIMIT ?',
+      [type, limit]
+    );
+
+    return result.data.map((row: any) => ({
+      id: row.id,
+      sessionId: row.session_id,
+      userId: row.user_id,
+      content: row.content,
+      timestamp: new Date(row.timestamp),
+      type: row.type,
+      ...(row.type === 'agent' && { confidence: row.confidence }),
+      ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
+    }));
+  }
+
+  // Enhanced User operations
+  async createUser(user: User): Promise<User> {
+    return this.executeTransaction(async (connection) => {
+      await this.executeStatement(
+        `INSERT INTO users (id, name, email, preferences)
+         VALUES (?, ?, ?, ?)`,
+        [user.id, user.name, user.email, JSON.stringify(user.preferences)],
+        connection
+      );
+
+      // Log analytics event
+      await this.executeStatement(
+        'INSERT INTO analytics (event_type, user_id, metadata) VALUES (?, ?, ?)',
+        ['user_created', user.id, JSON.stringify({ email: user.email })],
+        connection
+      );
+
+      return user;
+    });
   }
 
   async getUser(userId: string): Promise<User | null> {
-    const row = await this.get(`
-      SELECT * FROM users WHERE id = ?
-    `, [userId]) as any;
+    const result = await this.executeQuery(
+      'SELECT * FROM users WHERE id = ?',
+      [userId]
+    );
 
-    if (!row) return null;
+    if (result.data.length === 0) return null;
 
+    const row = result.data[0] as any;
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      preferences: JSON.parse(row.preferences),
+    };
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    const result = await this.executeQuery(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (result.data.length === 0) return null;
+
+    const row = result.data[0] as any;
     return {
       id: row.id,
       name: row.name,
@@ -261,21 +584,70 @@ export class DatabaseService {
     setClauses.push('updated_at = CURRENT_TIMESTAMP');
     values.push(userId);
 
-    await this.run(`
-      UPDATE users SET ${setClauses.join(', ')} WHERE id = ?
-    `, values);
+    await this.executeStatement(
+      `UPDATE users SET ${setClauses.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    // Log analytics event
+    await this.executeStatement(
+      'INSERT INTO analytics (event_type, user_id, metadata) VALUES (?, ?, ?)',
+      ['user_updated', userId, JSON.stringify(updates)]
+    );
+  }
+
+  // Analytics operations
+  async logEvent(eventType: string, sessionId?: string, userId?: string, metadata?: Record<string, unknown>): Promise<void> {
+    await this.executeStatement(
+      'INSERT INTO analytics (event_type, session_id, user_id, metadata) VALUES (?, ?, ?, ?)',
+      [eventType, sessionId, userId, JSON.stringify(metadata || {})]
+    );
+  }
+
+  async getAnalytics(limit: number = 100): Promise<any[]> {
+    const result = await this.executeQuery(
+      'SELECT * FROM analytics ORDER BY created_at DESC LIMIT ?',
+      [limit]
+    );
+
+    return result.data.map((row: any) => ({
+      id: row.id,
+      eventType: row.event_type,
+      sessionId: row.session_id,
+      userId: row.user_id,
+      metadata: row.metadata ? JSON.parse(row.metadata) : {},
+      createdAt: new Date(row.created_at),
+    }));
   }
 
   // Cleanup operations
   async cleanupExpiredSessions(): Promise<number> {
-    const result = await this.run(`
-      UPDATE sessions 
-      SET status = 'ended', end_time = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-      WHERE status = 'active' 
-      AND start_time < datetime('now', '-30 minutes')
-    `) as any;
+    return this.executeTransaction(async (connection) => {
+      // Log cleanup event
+      await this.executeStatement(
+        'INSERT INTO analytics (event_type, metadata) VALUES (?, ?)',
+        ['cleanup_started', JSON.stringify({ timestamp: new Date().toISOString() })],
+        connection
+      );
 
-    return result.changes || 0;
+      const result = await this.executeStatement(
+        `UPDATE sessions 
+         SET status = 'ended', end_time = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE status = 'active' 
+         AND start_time < datetime('now', '-30 minutes')`,
+        [],
+        connection
+      );
+
+      // Log cleanup completion
+      await this.executeStatement(
+        'INSERT INTO analytics (event_type, metadata) VALUES (?, ?)',
+        ['cleanup_completed', JSON.stringify({ sessions_ended: result.changes })],
+        connection
+      );
+
+      return result.changes;
+    });
   }
 
   async getDatabaseStats(): Promise<{
@@ -283,29 +655,86 @@ export class DatabaseService {
     messages: number;
     users: number;
     activeSessions: number;
+    totalAnalytics: number;
+    databaseSize: string;
   }> {
-    const [sessionsResult, messagesResult, usersResult, activeSessionsResult] = await Promise.all([
-      this.get('SELECT COUNT(*) as count FROM sessions'),
-      this.get('SELECT COUNT(*) as count FROM messages'),
-      this.get('SELECT COUNT(*) as count FROM users'),
-      this.get('SELECT COUNT(*) as count FROM sessions WHERE status = "active"'),
-    ]) as [any, any, any, any];
+    const [sessionsResult, messagesResult, usersResult, activeSessionsResult, analyticsResult] = await Promise.all([
+      this.executeQuery('SELECT COUNT(*) as count FROM sessions'),
+      this.executeQuery('SELECT COUNT(*) as count FROM messages'),
+      this.executeQuery('SELECT COUNT(*) as count FROM users'),
+      this.executeQuery('SELECT COUNT(*) as count FROM sessions WHERE status = ?', ['active']),
+      this.executeQuery('SELECT COUNT(*) as count FROM analytics'),
+    ]);
+
+    // Get database size (approximate)
+    const sizeResult = await this.executeQuery(`
+      SELECT 
+        SUM(pg_column_size(sessions)) + 
+        SUM(pg_column_size(messages)) + 
+        SUM(pg_column_size(users)) + 
+        SUM(pg_column_size(analytics)) as total_size 
+      FROM sessions, messages, users, analytics
+    `);
 
     return {
-      sessions: sessionsResult.count,
-      messages: messagesResult.count,
-      users: usersResult.count,
-      activeSessions: activeSessionsResult.count,
+      sessions: sessionsResult.data[0]?.count || 0,
+      messages: messagesResult.data[0]?.count || 0,
+      users: usersResult.data[0]?.count || 0,
+      activeSessions: activeSessionsResult.data[0]?.count || 0,
+      totalAnalytics: analyticsResult.data[0]?.count || 0,
+      databaseSize: this.formatBytes(sizeResult.data[0]?.total_size || 0),
     };
+  }
+
+  private formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   async close(): Promise<void> {
     try {
-      await this.connection.close();
-      await this.db.close();
+      // Close prepared statements
+      for (const statement of this.preparedStatements.values()) {
+        statement.finalize();
+      }
+      this.preparedStatements.clear();
+
+      // Close connection pool
+      for (const connection of this.connectionPool) {
+        await promisify(connection.close.bind(connection))();
+      }
+      this.connectionPool = [];
+
+      // Close database
+      await promisify(this.db.close.bind(this.db))();
+      
+      this.isInitialized = false;
       logger.info('Database connection closed');
     } catch (error) {
       logger.error('Error closing database connection:', error);
+      throw error;
+    }
+  }
+
+  // Health check
+  async healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; details: string }> {
+    try {
+      const startTime = Date.now();
+      await this.executeQuery('SELECT 1 as health_check');
+      const responseTime = Date.now() - startTime;
+
+      return {
+        status: 'healthy',
+        details: `Database responding in ${responseTime}ms with ${this.connectionPool.length} active connections`,
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        details: `Database health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
     }
   }
 }
