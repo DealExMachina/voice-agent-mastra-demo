@@ -117,15 +117,28 @@ export const createTestSession = (overrides: Partial<Session> = {}): Session => 
   ...overrides,
 });
 
-export const createTestMessage = (overrides: Partial<Message> = {}): Message => ({
-  id: `msg-${Date.now()}`,
-  content: 'Test message',
-  timestamp: new Date(),
-  userId: `user-${Date.now()}`,
-  sessionId: `session-${Date.now()}`,
-  type: 'user',
-  ...overrides,
-});
+export const createTestMessage = (overrides: Partial<Message> = {}): Message => {
+  const baseMessage = {
+    id: `msg-${Date.now()}`,
+    content: 'Test message',
+    timestamp: new Date(),
+    sessionId: `session-${Date.now()}`,
+    type: 'user' as const,
+    ...overrides,
+  };
+
+  if (baseMessage.type === 'user') {
+    return {
+      ...baseMessage,
+      userId: `user-${Date.now()}`,
+    } as any;
+  } else {
+    return {
+      ...baseMessage,
+      confidence: 0.95,
+    } as any;
+  }
+};
 
 export const createTestUser = (overrides: Partial<User> = {}): User => ({
   id: `user-${Date.now()}`,

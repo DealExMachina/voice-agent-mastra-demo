@@ -5,7 +5,6 @@ import morgan from 'morgan';
 import compression from 'compression';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { AccessToken } from 'livekit-server-sdk';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -19,9 +18,11 @@ import type {
   Session
 } from '@voice-agent-mastra-demo/shared';
 
-import { config, getRateLimitConfig, getLiveKitConfig } from './config/env.js';
+import { config, getRateLimitConfig } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { database } from './services/database.js';
+import apiRouter from './routes/index.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 // Ensure data directory exists
 const dataDir = path.dirname(config.DATABASE_PATH);
@@ -50,8 +51,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
-
-const liveKitConfig = getLiveKitConfig();
 
 // Middleware
 app.use(helmet({
@@ -86,38 +85,10 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Utility functions
-async function createSession(userId: string): Promise<Session> {
-  const session: Session = {
-    id: generateId(),
-    userId,
-    startTime: new Date(),
-    status: 'active',
-    metadata: {}
-  };
-  
-  await database.createSession(session);
-  return session;
-}
+// Mount API routes
+app.use('/api/v1', apiRouter);
 
-async function generateLiveKitToken(roomName: string, participantName: string): Promise<string> {
-  const at = new AccessToken(liveKitConfig.apiKey, liveKitConfig.apiSecret, {
-    identity: participantName,
-    name: participantName,
-  });
-
-  at.addGrant({
-    roomJoin: true,
-    room: roomName,
-    canPublish: true,
-    canSubscribe: true,
-    canPublishData: true,
-  });
-
-  return await at.toJwt();
-}
-
-// Health check endpoint
+// Legacy endpoints for backward compatibility
 app.get('/health', async (req, res) => {
   try {
     const stats = await database.getDatabaseStats();
@@ -137,78 +108,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// API Routes
-app.post('/api/sessions', async (req, res) => {
-  try {
-    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-    await tokenLimiter.consume(clientIP);
-    
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
-
-    const session = await createSession(userId);
-    logger.info(`Created session ${session.id} for user ${userId}`);
-
-    res.json({ session });
-      } catch {
-      logger.warn(`Token generation rate limit exceeded for IP: ${req.ip}`);
-      res.status(429).json({ error: 'Rate limit exceeded for token generation' });
-    }
-});
-
-app.get('/api/sessions/:sessionId', async (req, res) => {
-  try {
-    const { sessionId } = req.params;
-    const session = await database.getSession(sessionId);
-    
-    if (!session) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-
-    const sessionMessages = await database.getSessionMessages(sessionId);
-    res.json({ session, messages: sessionMessages });
-  } catch (error) {
-    logger.error('Error fetching session:', error);
-    res.status(500).json({ error: 'Failed to fetch session' });
-  }
-});
-
-app.post('/api/livekit/token', async (req, res) => {
-  try {
-    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-    await tokenLimiter.consume(clientIP);
-    
-    const { roomName, participantName } = req.body;
-    
-    if (!roomName || !participantName) {
-      return res.status(400).json({ 
-        error: 'roomName and participantName are required' 
-      });
-    }
-
-    const token = await generateLiveKitToken(roomName, participantName);
-    
-    logger.info(`Generated LiveKit token for ${participantName} in room ${roomName}`);
-    
-    res.json({ 
-      token,
-      url: liveKitConfig.url,
-      roomName,
-      participantName
-    });
-      } catch (error) {
-      if (error && typeof error === 'object' && 'remainingPoints' in error) {
-        logger.warn(`LiveKit token rate limit exceeded for IP: ${req.ip}`);
-        res.status(429).json({ error: 'Rate limit exceeded for token generation' });
-      } else {
-        logger.error('Error generating LiveKit token:', error);
-        res.status(500).json({ error: 'Failed to generate token' });
-      }
-    }
-});
-
+// Legacy message endpoint for Socket.IO compatibility
 app.post('/api/messages', async (req, res) => {
   try {
     const result = safeParseVoiceMessage(req.body);
@@ -295,18 +195,10 @@ io.on('connection', (socket) => {
 });
 
 // Error handling middleware
-app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  logger.error('Unhandled error:', error);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: config.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-  });
-});
+app.use(errorHandler);
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
+app.use(notFoundHandler);
 
 // Graceful shutdown
 const gracefulShutdown = async () => {
@@ -349,7 +241,8 @@ setInterval(async () => {
 
 server.listen(config.PORT, () => {
   logger.info(`🚀 Voice Agent Mastra Demo Backend running on port ${config.PORT}`);
-  logger.info(`📡 LiveKit WebSocket URL: ${liveKitConfig.url}`);
+  logger.info(`📡 API Documentation: http://localhost:${config.PORT}/api/v1`);
   logger.info(`🌐 Environment: ${config.NODE_ENV}`);
   logger.info(`🗄️ Database: ${config.DATABASE_PATH}`);
+  logger.info(`📊 Health Check: http://localhost:${config.PORT}/health`);
 }); 
