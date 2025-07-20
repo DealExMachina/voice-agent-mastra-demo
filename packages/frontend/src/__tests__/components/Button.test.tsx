@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { Button } from '../../components/ui/Button.js';
 import { mockButtonProps } from '../fixtures.js';
 

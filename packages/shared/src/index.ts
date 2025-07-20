@@ -116,19 +116,47 @@ export function createTimestamp(): Date {
 
 // Type-safe validation functions
 export function validateVoiceMessage(data: unknown): VoiceMessage {
-  return VoiceMessageSchema.parse(data);
+  try {
+    return VoiceMessageSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError('Invalid voice message', error.issues);
+    }
+    throw error;
+  }
 }
 
 export function validateAgentResponse(data: unknown): AgentResponse {
-  return AgentResponseSchema.parse(data);
+  try {
+    return AgentResponseSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError('Invalid agent response', error.issues);
+    }
+    throw error;
+  }
 }
 
 export function validateSession(data: unknown): Session {
-  return SessionSchema.parse(data);
+  try {
+    return SessionSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError('Invalid session', error.issues);
+    }
+    throw error;
+  }
 }
 
 export function validateUser(data: unknown): User {
-  return UserSchema.parse(data);
+  try {
+    return UserSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError('Invalid user', error.issues);
+    }
+    throw error;
+  }
 }
 
 // Error types

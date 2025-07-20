@@ -36,8 +36,8 @@
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
 [2m      Tests [22m [2mno tests[22m
-[2m   Start at [22m 12:59:01
-[2m   Duration [22m 382ms[2m (transform 125ms, setup 63ms, collect 0ms, tests 0ms, environment 0ms, prepare 54ms)[22m
+[2m   Start at [22m 13:07:55
+[2m   Duration [22m 342ms[2m (transform 106ms, setup 18ms, collect 0ms, tests 0ms, environment 0ms, prepare 70ms)[22m
 
 [1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

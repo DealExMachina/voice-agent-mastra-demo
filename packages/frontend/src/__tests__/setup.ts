@@ -1,8 +1,9 @@
 import { beforeAll, afterAll, vi } from 'vitest';
+import '@testing-library/jest-dom';
 
 // Mock environment variables
-vi.stubEnv('VITE_API_URL', 'http://localhost:3001');
-vi.stubEnv('VITE_APP_NAME', 'Voice Agent Test');
+process.env.VITE_API_URL = 'http://localhost:3001';
+process.env.VITE_APP_NAME = 'Voice Agent Test';
 
 // Mock fetch globally
 global.fetch = vi.fn();

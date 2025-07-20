@@ -64,7 +64,7 @@
        [32m✓[39m should have correct session timeout
        [32m✓[39m should have correct max message length
        [32m✓[39m should have correct max session messages
-[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [31m❯[39m [2msrc/__tests__/[22mindex[2m.test.ts[22m[2m (39)[22m
+[?25l[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [31m❯[39m [2msrc/__tests__/[22mindex[2m.test.ts[22m[2m (39)[22m
    [31m❯[39m Shared Package[2m (39)[22m
      [32m✓[39m Utility Functions[2m (3)[22m
        [32m✓[39m generateId[2m (1)[22m
@@ -456,8 +456,8 @@
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
 [2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m35 passed[39m[22m[90m (39)[39m
-[2m   Start at [22m 12:59:01
-[2m   Duration [22m 318ms[2m (transform 65ms, setup 0ms, collect 84ms, tests 21ms, environment 0ms, prepare 60ms)[22m
+[2m   Start at [22m 13:07:55
+[2m   Duration [22m 326ms[2m (transform 56ms, setup 0ms, collect 90ms, tests 25ms, environment 0ms, prepare 54ms)[22m
 
 [1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

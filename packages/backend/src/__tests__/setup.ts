@@ -1,13 +1,9 @@
 import { beforeAll, afterAll } from 'vitest';
-import { config } from 'dotenv';
-
-// Load test environment variables
-config({ path: '.env.test' });
 
 // Set test environment
 process.env.NODE_ENV = 'test';
 process.env.PORT = '3002';
-process.env.LOG_LEVEL = 'silent';
+process.env.LOG_LEVEL = 'error';
 
 // Mock environment variables for testing
 process.env.LIVEKIT_API_KEY = 'test-api-key';

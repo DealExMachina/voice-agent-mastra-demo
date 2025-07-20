@@ -1,4 +1,5 @@
 import type { Session, Message, User } from '@voice-agent-mastra-demo/shared';
+import { vi } from 'vitest';
 
 // Test server configuration
 export const TEST_CONFIG = {

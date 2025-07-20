@@ -29,244 +29,50 @@
 [22m[39mSetting up frontend test environment...
 Cleaning up frontend test environment...
 
-[?25l [31m❯[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
-   [31m❯[39m Button Component[2m (17)[22m
-     [31m×[39m should render button with correct text
-     [31m×[39m should render button with children
-     [31m×[39m should apply primary variant styles
-     [31m×[39m should apply secondary variant styles
-     [31m×[39m should apply danger variant styles
-     [31m×[39m should apply ghost variant styles
-     [31m×[39m should apply small size styles
-     [31m×[39m should apply medium size styles
-     [31m×[39m should apply large size styles
+[?25l [32m✓[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
+   [32m✓[39m Button Component[2m (17)[22m
+     [32m✓[39m should render button with correct text
+     [32m✓[39m should render button with children
+     [32m✓[39m should apply primary variant styles
+     [32m✓[39m should apply secondary variant styles
+     [32m✓[39m should apply danger variant styles
+     [32m✓[39m should apply ghost variant styles
+     [32m✓[39m should apply small size styles
+     [32m✓[39m should apply medium size styles
+     [32m✓[39m should apply large size styles
      [32m✓[39m should call onClick when clicked
-     [31m×[39m should be disabled when disabled prop is true
-     [31m×[39m should be disabled when loading prop is true
-     [31m×[39m should show loading spinner when loading
-     [31m×[39m should apply custom className
-     [31m×[39m should pass through other props
-     [31m×[39m should have focus styles
-     [31m×[39m should have disabled styles
-[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [31m❯[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
-   [31m❯[39m Button Component[2m (17)[22m
-     [31m×[39m should render button with correct text
-     [31m×[39m should render button with children
-     [31m×[39m should apply primary variant styles
-     [31m×[39m should apply secondary variant styles
-     [31m×[39m should apply danger variant styles
-     [31m×[39m should apply ghost variant styles
-     [31m×[39m should apply small size styles
-     [31m×[39m should apply medium size styles
-     [31m×[39m should apply large size styles
+     [32m✓[39m should be disabled when disabled prop is true
+     [32m✓[39m should be disabled when loading prop is true
+     [32m✓[39m should show loading spinner when loading
+     [32m✓[39m should apply custom className
+     [32m✓[39m should pass through other props
+     [32m✓[39m should have focus styles
+     [32m✓[39m should have disabled styles
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m✓[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
+   [32m✓[39m Button Component[2m (17)[22m
+     [32m✓[39m should render button with correct text
+     [32m✓[39m should render button with children
+     [32m✓[39m should apply primary variant styles
+     [32m✓[39m should apply secondary variant styles
+     [32m✓[39m should apply danger variant styles
+     [32m✓[39m should apply ghost variant styles
+     [32m✓[39m should apply small size styles
+     [32m✓[39m should apply medium size styles
+     [32m✓[39m should apply large size styles
      [32m✓[39m should call onClick when clicked
-     [31m×[39m should be disabled when disabled prop is true
-     [31m×[39m should be disabled when loading prop is true
-     [31m×[39m should show loading spinner when loading
-     [31m×[39m should apply custom className
-     [31m×[39m should pass through other props
-     [31m×[39m should have focus styles
-     [31m×[39m should have disabled styles
+     [32m✓[39m should be disabled when disabled prop is true
+     [32m✓[39m should be disabled when loading prop is true
+     [32m✓[39m should show loading spinner when loading
+     [32m✓[39m should apply custom className
+     [32m✓[39m should pass through other props
+     [32m✓[39m should have focus styles
+     [32m✓[39m should have disabled styles
 
-[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 16 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 13:07:55
+[2m   Duration [22m 973ms[2m (transform 62ms, setup 87ms, collect 116ms, tests 105ms, environment 330ms, prepare 166ms)[22m
 
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould render button with correct text
-[31m[1mError[22m: Invalid Chai property: toBeInTheDocument[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m10:60[22m[39m
-    [90m  8| [39m    [34mrender[39m([33m<[39m[33mButton[39m[33m>[39mClick me[33m<[39m[33m/[39m[33mButton[39m[33m>[39m)[33m;[39m
-    [90m  9| [39m    
-    [90m 10| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByRole[39m([32m'button'[39m[33m,[39m { name[33m:[39m [32m'Click me'[39m }))[33m.[39m[34mtoBeInThe[39m…
-    [90m   | [39m                                                           [31m^[39m
-    [90m 11| [39m  })[33m;[39m
-    [90m 12| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould render button with children
-[31m[1mError[22m: Invalid Chai property: toBeInTheDocument[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m16:74[22m[39m
-    [90m 14| [39m    [34mrender[39m([33m<[39m[33mButton[39m[33m>[39m[33m{[39mmockButtonProps[33m.[39mchildren[33m}[39m[33m<[39m[33m/[39m[33mButton[39m[33m>[39m)[33m;[39m
-    [90m 15| [39m    
-    [90m 16| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByRole[39m([32m'button'[39m[33m,[39m { name[33m:[39m mockButtonProps[33m.[39mchildren…
-    [90m   | [39m                                                                         [31m^[39m
-    [90m 17| [39m  })[33m;[39m
-    [90m 18| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply primary variant styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m23:18[22m[39m
-    [90m 21| [39m    
-    [90m 22| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 23| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'bg-blue-600'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 24| [39m  })[33m;[39m
-    [90m 25| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply secondary variant styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m30:18[22m[39m
-    [90m 28| [39m    
-    [90m 29| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 30| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'bg-gray-200'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 31| [39m  })[33m;[39m
-    [90m 32| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply danger variant styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m37:18[22m[39m
-    [90m 35| [39m    
-    [90m 36| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 37| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'bg-red-600'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 38| [39m  })[33m;[39m
-    [90m 39| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply ghost variant styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m44:18[22m[39m
-    [90m 42| [39m    
-    [90m 43| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 44| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'bg-transparent'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 45| [39m  })[33m;[39m
-    [90m 46| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply small size styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m51:18[22m[39m
-    [90m 49| [39m    
-    [90m 50| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 51| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'px-3'[39m[33m,[39m [32m'py-1.5'[39m[33m,[39m [32m'text-sm'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 52| [39m  })[33m;[39m
-    [90m 53| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply medium size styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m58:18[22m[39m
-    [90m 56| [39m    
-    [90m 57| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 58| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'px-4'[39m[33m,[39m [32m'py-2'[39m[33m,[39m [32m'text-base'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 59| [39m  })[33m;[39m
-    [90m 60| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply large size styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m65:18[22m[39m
-    [90m 63| [39m    
-    [90m 64| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 65| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'px-6'[39m[33m,[39m [32m'py-3'[39m[33m,[39m [32m'text-lg'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 66| [39m  })[33m;[39m
-    [90m 67| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould be disabled when disabled prop is true
-[31m[1mError[22m: Invalid Chai property: toBeDisabled[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m81:18[22m[39m
-    [90m 79| [39m    
-    [90m 80| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 81| [39m    [34mexpect[39m(button)[33m.[39m[34mtoBeDisabled[39m()[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 82| [39m  })[33m;[39m
-    [90m 83| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould be disabled when loading prop is true
-[31m[1mError[22m: Invalid Chai property: toBeDisabled[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m88:18[22m[39m
-    [90m 86| [39m    
-    [90m 87| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 88| [39m    [34mexpect[39m(button)[33m.[39m[34mtoBeDisabled[39m()[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m 89| [39m  })[33m;[39m
-    [90m 90| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould show loading spinner when loading
-[31m[1mError[22m: Invalid Chai property: toBeInTheDocument[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m95:39[22m[39m
-    [90m 93| [39m    
-    [90m 94| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m 95| [39m    [34mexpect[39m(button[33m.[39m[34mquerySelector[39m([32m'svg'[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
-    [90m   | [39m                                      [31m^[39m
-    [90m 96| [39m    [34mexpect[39m(button[33m.[39m[34mquerySelector[39m([32m'svg'[39m))[33m.[39m[34mtoHaveClass[39m([32m'animate-spin'[39m)[33m;[39m
-    [90m 97| [39m  })[33m;[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply custom className
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m103:18[22m[39m
-    [90m101| [39m    
-    [90m102| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m103| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'custom-class'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m104| [39m  })[33m;[39m
-    [90m105| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould pass through other props
-[31m[1mError[22m: Invalid Chai property: toHaveAttribute[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m110:18[22m[39m
-    [90m108| [39m    
-    [90m109| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByTestId[39m([32m'test-button'[39m)[33m;[39m
-    [90m110| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveAttribute[39m([32m'aria-label'[39m[33m,[39m [32m'Test button'[39m)[33m;[39m
-    [90m   | [39m                 [31m^[39m
-    [90m111| [39m  })[33m;[39m
-    [90m112| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould have focus styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m117:18[22m[39m
-    [90m115| [39m    
-    [90m116| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m117| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'focus:outline-none'[39m[33m,[39m [32m'focus:ring-2'[39m[33m,[39m [32m'[39m…
-    [90m   | [39m                 [31m^[39m
-    [90m118| [39m  })[33m;[39m
-    [90m119| [39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/16]⎯[22m[39m
-
-[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould have disabled styles
-[31m[1mError[22m: Invalid Chai property: toHaveClass[39m
-[36m [2m❯[22m src/__tests__/components/Button.test.tsx:[2m124:18[22m[39m
-    [90m122| [39m    
-    [90m123| [39m    [35mconst[39m button [33m=[39m screen[33m.[39m[34mgetByRole[39m([32m'button'[39m)[33m;[39m
-    [90m124| [39m    [34mexpect[39m(button)[33m.[39m[34mtoHaveClass[39m([32m'disabled:opacity-50'[39m[33m,[39m [32m'disabled:cursor[39m…
-    [90m   | [39m                 [31m^[39m
-    [90m125| [39m  })[33m;[39m
-    [90m126| [39m})[33m;[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯[22m[39m
-
-[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
-[2m      Tests [22m [1m[31m16 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (17)[39m
-[2m   Start at [22m 12:59:01
-[2m   Duration [22m 838ms[2m (transform 58ms, setup 26ms, collect 127ms, tests 101ms, environment 284ms, prepare 142ms)[22m
-
-[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+[1m[7m[32m PASS [39m[27m[22m [32mWaiting for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
 [?25h

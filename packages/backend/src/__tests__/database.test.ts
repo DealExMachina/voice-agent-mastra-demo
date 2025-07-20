@@ -4,9 +4,15 @@ import { mockSessions, mockMessages, mockUsers, createTestSession, createTestMes
 
 // Mock DuckDB
 vi.mock('duckdb', () => ({
-  default: vi.fn().mockImplementation(() => ({
+  Database: vi.fn().mockImplementation(() => ({
     exec: vi.fn(),
     all: vi.fn(),
+    close: vi.fn(),
+  })),
+  Connection: vi.fn().mockImplementation(() => ({
+    exec: vi.fn(),
+    all: vi.fn().mockResolvedValue([]),
+    run: vi.fn().mockResolvedValue(undefined),
     close: vi.fn(),
   })),
 }));
@@ -28,7 +34,8 @@ describe('DatabaseService', () => {
 
     // Mock the database connection
     const duckdb = await import('duckdb');
-    (duckdb.default as any).mockImplementation(() => mockDb);
+    (duckdb.Database as any).mockImplementation(() => mockDb);
+    (duckdb.Connection as any).mockImplementation(() => mockDb);
 
     dbService = new DatabaseService(':memory:');
     await dbService.initialize();

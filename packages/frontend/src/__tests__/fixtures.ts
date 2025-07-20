@@ -1,4 +1,5 @@
 import type { Session, Message, VoiceMessage, AgentResponse } from '@voice-agent-mastra-demo/shared';
+import { vi } from 'vitest';
 
 // Mock session data
 export const mockSession: Session = {
