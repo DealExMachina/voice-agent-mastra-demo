@@ -1,0 +1,15 @@
+
+
+> @voice-agent-mastra-demo/backend@1.0.0 lint /workspace/packages/backend
+> eslint src --ext .ts
+
+[0m[0m
+[0m[4m/workspace/packages/backend/src/index.ts[24m[0m
+[0m   [2m20:3[22m   [31merror[39m  'Message' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m84:12[22m  [31merror[39m  'rejRes' is defined but never used   [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m156:16[22m  [31merror[39m  'error' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m299:69[22m  [31merror[39m  '_next' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[31m[1m✖ 4 problems (4 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m

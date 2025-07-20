@@ -3,79 +3,54 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { AccessToken } from 'livekit-server-sdk';
-import pino from 'pino';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { v4 as uuidv4 } from 'uuid';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 import { 
   generateId, 
-  createTimestamp,
-  SessionError,
-  AgentError,
   safeParseVoiceMessage,
-  safeParseSession,
-  DEFAULT_USER_PREFERENCES,
-  SESSION_TIMEOUT_MS,
-  MAX_MESSAGE_LENGTH,
 } from '@voice-agent-mastra-demo/shared';
 
 import type { 
-  VoiceMessage, 
-  AgentResponse, 
-  Session, 
-  Message
+  Session
 } from '@voice-agent-mastra-demo/shared';
 
-// Load environment variables
-dotenv.config();
+import { config, getRateLimitConfig } from './config/env.js';
+import { logger } from './utils/logger.js';
+import { database } from './services/database.js';
+import apiRouter from './routes/index.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
-// Initialize logger
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV === 'development' ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: true,
-      ignore: 'pid,hostname'
-    }
-  } : undefined
-});
+// Ensure data directory exists
+const dataDir = path.dirname(config.DATABASE_PATH);
+await fs.mkdir(dataDir, { recursive: true });
+
+// Initialize database
+await database.initialize();
 
 // Rate limiters
+const rateLimitConfig = getRateLimitConfig();
 const generalLimiter = new RateLimiterMemory({
-  points: 100, // Limit each IP to 100 requests per duration
-  duration: 60, // Per 60 seconds
+  points: rateLimitConfig.general.points,
+  duration: rateLimitConfig.general.duration,
 });
 
 const tokenLimiter = new RateLimiterMemory({
-  points: 5, // Limit token generation to 5 per minute per IP
-  duration: 60,
+  points: rateLimitConfig.token.points,
+  duration: rateLimitConfig.token.duration,
 });
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: config.FRONTEND_URL,
     methods: ["GET", "POST"]
   }
 });
-
-const PORT = process.env.PORT || 3001;
-const LIVEKIT_WS_URL = process.env.LIVEKIT_URL || 'ws://localhost:7880';
-const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
-const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
-
-// Validate required environment variables
-if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
-  logger.error('Missing required environment variables: LIVEKIT_API_KEY, LIVEKIT_API_SECRET');
-  process.exit(1);
-}
 
 // Middleware
 app.use(helmet({
@@ -90,7 +65,7 @@ app.use(helmet({
   },
 }));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: config.FRONTEND_URL,
   credentials: true
 }));
 app.use(compression());
@@ -110,124 +85,31 @@ app.use(async (req, res, next) => {
   }
 });
 
-// In-memory storage (replace with Redis/Database in production)
-const sessions = new Map<string, Session>();
-const messages = new Map<string, Message[]>();
+// Mount API routes
+app.use('/api/v1', apiRouter);
 
-// Utility functions
-function createSession(userId: string): Session {
-  const session: Session = {
-    id: generateId(),
-    userId,
-    startTime: new Date(),
-    status: 'active',
-    metadata: {}
-  };
-  sessions.set(session.id, session);
-  messages.set(session.id, []);
-  return session;
-}
-
-async function generateLiveKitToken(roomName: string, participantName: string): Promise<string> {
-  const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-    identity: participantName,
-    name: participantName,
-  });
-
-  at.addGrant({
-    roomJoin: true,
-    room: roomName,
-    canPublish: true,
-    canSubscribe: true,
-    canPublishData: true,
-  });
-
-  return await at.toJwt();
-}
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// API Routes
-app.post('/api/sessions', async (req, res) => {
+// Legacy endpoints for backward compatibility
+app.get('/health', async (req, res) => {
   try {
-    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-    await tokenLimiter.consume(clientIP);
-    
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
-
-    const session = createSession(userId);
-    logger.info(`Created session ${session.id} for user ${userId}`);
-
-    res.json({ session });
-  } catch (rejRes) {
-    logger.warn(`Token generation rate limit exceeded for IP: ${req.ip}`);
-    res.status(429).json({ error: 'Rate limit exceeded for token generation' });
-  }
-});
-
-app.get('/api/sessions/:sessionId', (req, res) => {
-  try {
-    const { sessionId } = req.params;
-    const session = sessions.get(sessionId);
-    
-    if (!session) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-
-    const sessionMessages = messages.get(sessionId) || [];
-    res.json({ session, messages: sessionMessages });
-  } catch (error) {
-    logger.error('Error fetching session:', error);
-    res.status(500).json({ error: 'Failed to fetch session' });
-  }
-});
-
-app.post('/api/livekit/token', async (req, res) => {
-  try {
-    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-    await tokenLimiter.consume(clientIP);
-    
-    const { roomName, participantName } = req.body;
-    
-    if (!roomName || !participantName) {
-      return res.status(400).json({ 
-        error: 'roomName and participantName are required' 
-      });
-    }
-
-    const token = await generateLiveKitToken(roomName, participantName);
-    
-    logger.info(`Generated LiveKit token for ${participantName} in room ${roomName}`);
-    
+    const stats = await database.getDatabaseStats();
     res.json({ 
-      token,
-      url: LIVEKIT_WS_URL,
-      roomName,
-      participantName
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      environment: config.NODE_ENV,
+      database: stats
     });
-  } catch (rejRes) {
-    if (rejRes && typeof rejRes === 'object' && 'remainingPoints' in rejRes) {
-      logger.warn(`LiveKit token rate limit exceeded for IP: ${req.ip}`);
-      res.status(429).json({ error: 'Rate limit exceeded for token generation' });
-    } else {
-      logger.error('Error generating LiveKit token:', rejRes);
-      res.status(500).json({ error: 'Failed to generate token' });
-    }
+  } catch (error) {
+    logger.error('Health check failed:', error);
+    res.status(500).json({ 
+      status: 'unhealthy',
+      error: 'Database connection failed'
+    });
   }
 });
 
-app.post('/api/messages', (req, res) => {
+// Legacy message endpoint for Socket.IO compatibility
+app.post('/api/messages', async (req, res) => {
   try {
     const result = safeParseVoiceMessage(req.body);
     if (!result.success) {
@@ -238,13 +120,15 @@ app.post('/api/messages', (req, res) => {
     }
 
     const voiceMessage = result.data;
-    const sessionMessages = messages.get(voiceMessage.sessionId);
     
-    if (!sessionMessages) {
+    // Verify session exists
+    const session = await database.getSession(voiceMessage.sessionId);
+    if (!session) {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    sessionMessages.push(voiceMessage);
+    // Store message in database
+    await database.addMessage(voiceMessage);
     
     // Emit to connected clients
     io.to(voiceMessage.sessionId).emit('new_message', voiceMessage);
@@ -261,32 +145,47 @@ app.post('/api/messages', (req, res) => {
 io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
   
-  socket.on('join_session', (sessionId: string) => {
-    if (sessions.has(sessionId)) {
-      socket.join(sessionId);
-      logger.info(`Client ${socket.id} joined session ${sessionId}`);
-      
-      // Send existing messages
-      const sessionMessages = messages.get(sessionId) || [];
-      socket.emit('session_messages', sessionMessages);
-    } else {
-      socket.emit('error', { message: 'Session not found' });
+  socket.on('join_session', async (sessionId: string) => {
+    try {
+      const session = await database.getSession(sessionId);
+      if (session) {
+        socket.join(sessionId);
+        logger.info(`Client ${socket.id} joined session ${sessionId}`);
+        
+        // Send existing messages
+        const sessionMessages = await database.getSessionMessages(sessionId);
+        socket.emit('session_messages', sessionMessages);
+      } else {
+        socket.emit('error', { message: 'Session not found' });
+      }
+    } catch (error) {
+      logger.error('Error joining session:', error);
+      socket.emit('error', { message: 'Failed to join session' });
     }
   });
 
-  socket.on('voice_message', (data) => {
-    const result = safeParseVoiceMessage(data);
-    if (result.success) {
-      const voiceMessage = result.data;
-      const sessionMessages = messages.get(voiceMessage.sessionId);
-      
-      if (sessionMessages) {
-        sessionMessages.push(voiceMessage);
-        socket.to(voiceMessage.sessionId).emit('new_message', voiceMessage);
-        logger.info(`Voice message processed for session ${voiceMessage.sessionId}`);
+  socket.on('voice_message', async (data) => {
+    try {
+      const result = safeParseVoiceMessage(data);
+      if (result.success) {
+        const voiceMessage = result.data;
+        
+        // Verify session exists
+        const session = await database.getSession(voiceMessage.sessionId);
+        if (session) {
+          // Store message in database
+          await database.addMessage(voiceMessage);
+          socket.to(voiceMessage.sessionId).emit('new_message', voiceMessage);
+          logger.info(`Voice message processed for session ${voiceMessage.sessionId}`);
+        } else {
+          socket.emit('error', { message: 'Session not found' });
+        }
+      } else {
+        socket.emit('error', { message: 'Invalid voice message format' });
       }
-    } else {
-      socket.emit('error', { message: 'Invalid voice message format' });
+    } catch (error) {
+      logger.error('Error processing voice message:', error);
+      socket.emit('error', { message: 'Failed to process voice message' });
     }
   });
 
@@ -296,22 +195,22 @@ io.on('connection', (socket) => {
 });
 
 // Error handling middleware
-app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error:', error);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-  });
-});
+app.use(errorHandler);
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
+app.use(notFoundHandler);
 
 // Graceful shutdown
-const gracefulShutdown = () => {
+const gracefulShutdown = async () => {
   logger.info('Starting graceful shutdown...');
+  
+  try {
+    // Close database connection
+    await database.close();
+    logger.info('Database connection closed');
+  } catch (error) {
+    logger.error('Error closing database:', error);
+  }
   
   server.close(() => {
     logger.info('HTTP server closed');
@@ -329,28 +228,21 @@ process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
 // Session cleanup interval (every 5 minutes)
-setInterval(() => {
-  const now = Date.now();
-  let cleanedCount = 0;
-  
-  for (const [sessionId, session] of sessions.entries()) {
-    if (session.status === 'active' && 
-        (now - session.startTime.getTime()) > SESSION_TIMEOUT_MS) {
-      session.status = 'ended';
-      session.endTime = new Date();
-      sessions.delete(sessionId);
-      messages.delete(sessionId);
-      cleanedCount++;
+setInterval(async () => {
+  try {
+    const cleanedCount = await database.cleanupExpiredSessions();
+    if (cleanedCount > 0) {
+      logger.info(`Cleaned up ${cleanedCount} expired sessions`);
     }
-  }
-  
-  if (cleanedCount > 0) {
-    logger.info(`Cleaned up ${cleanedCount} expired sessions`);
+  } catch (error) {
+    logger.error('Error during session cleanup:', error);
   }
 }, 5 * 60 * 1000);
 
-server.listen(PORT, () => {
-  logger.info(`🚀 Voice Agent Mastra Demo Backend running on port ${PORT}`);
-  logger.info(`📡 LiveKit WebSocket URL: ${LIVEKIT_WS_URL}`);
-  logger.info(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+server.listen(config.PORT, () => {
+  logger.info(`🚀 Voice Agent Mastra Demo Backend running on port ${config.PORT}`);
+  logger.info(`📡 API Documentation: http://localhost:${config.PORT}/api/v1`);
+  logger.info(`🌐 Environment: ${config.NODE_ENV}`);
+  logger.info(`🗄️ Database: ${config.DATABASE_PATH}`);
+  logger.info(`📊 Health Check: http://localhost:${config.PORT}/health`);
 }); 

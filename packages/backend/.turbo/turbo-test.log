@@ -1,0 +1,53 @@
+
+
+> @voice-agent-mastra-demo/backend@1.0.0 test /workspace/packages/backend
+> vitest
+
+
+[1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/workspace/packages/backend[39m
+
+[90mstdout[2m | src/__tests__/database.test.ts
+[22m[39mSetting up test environment...
+Cleaning up test environment...
+
+[?25l [32m✓[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (10)[22m
+   [32m✓[39m DatabaseService[2m (10)[22m
+     [32m✓[39m Basic Functionality[2m (3)[22m
+       [32m✓[39m should be able to create a DatabaseService instance
+       [32m✓[39m should have initialize method
+       [32m✓[39m should have close method
+     [32m✓[39m Session Operations[2m (3)[22m
+       [32m✓[39m should have createSession method
+       [32m✓[39m should have getSession method
+       [32m✓[39m should have updateSession method
+     [32m✓[39m Message Operations[2m (2)[22m
+       [32m✓[39m should have addMessage method
+       [32m✓[39m should have getSessionMessages method
+     [32m✓[39m User Operations[2m (2)[22m
+       [32m✓[39m should have createUser method
+       [32m✓[39m should have getUser method
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m✓[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (10)[22m
+   [32m✓[39m DatabaseService[2m (10)[22m
+     [32m✓[39m Basic Functionality[2m (3)[22m
+       [32m✓[39m should be able to create a DatabaseService instance
+       [32m✓[39m should have initialize method
+       [32m✓[39m should have close method
+     [32m✓[39m Session Operations[2m (3)[22m
+       [32m✓[39m should have createSession method
+       [32m✓[39m should have getSession method
+       [32m✓[39m should have updateSession method
+     [32m✓[39m Message Operations[2m (2)[22m
+       [32m✓[39m should have addMessage method
+       [32m✓[39m should have getSessionMessages method
+     [32m✓[39m User Operations[2m (2)[22m
+       [32m✓[39m should have createUser method
+       [32m✓[39m should have getUser method
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m10 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 15:54:43
+[2m   Duration [22m 340ms[2m (transform 90ms, setup 32ms, collect 111ms, tests 6ms, environment 0ms, prepare 60ms)[22m
+
+[1m[7m[32m PASS [39m[27m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[?25h

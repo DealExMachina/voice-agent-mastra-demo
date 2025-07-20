@@ -1,0 +1,5 @@
+
+
+> @voice-agent-mastra-demo/frontend@1.0.0 lint /workspace/packages/frontend
+> eslint src --ext .ts,.tsx
+
