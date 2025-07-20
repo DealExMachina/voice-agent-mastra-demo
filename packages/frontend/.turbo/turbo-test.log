@@ -25,11 +25,7 @@
      [90m·[39m should pass through other props
      [90m·[39m should have focus styles
      [90m·[39m should have disabled styles
-[?25l[?25l[?25l[?25l[?25l[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[90mstdout[2m | src/__tests__/components/Button.test.tsx
-[22m[39mSetting up frontend test environment...
-Cleaning up frontend test environment...
-
-[?25l [31m❯[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
+[?25l[?25l[?25l[?25l[?25l[?25l[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [31m❯[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
    [31m❯[39m Button Component[2m (17)[22m
      [31m×[39m should render button with correct text
      [31m×[39m should render button with children
@@ -48,7 +44,11 @@ Cleaning up frontend test environment...
      [31m×[39m should pass through other props
      [31m×[39m should have focus styles
      [31m×[39m should have disabled styles
-[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [31m❯[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[90mstdout[2m | src/__tests__/components/Button.test.tsx
+[22m[39mSetting up frontend test environment...
+Cleaning up frontend test environment...
+
+ [31m❯[39m [2msrc/__tests__/components/[22mButton[2m.test.tsx[22m[2m (17)[22m
    [31m❯[39m Button Component[2m (17)[22m
      [31m×[39m should render button with correct text
      [31m×[39m should render button with children
@@ -212,3 +212,7 @@ Cleaning up frontend test environment...
     [90m 96| [39m    [34mexpect[39m(button[33m.[39m[34mquerySelector[39m([32m'svg'[39m))[33m.[39m[34mtoHaveClass[39m([32m'animate-spin'[39m)[33m;[39m
     [90m 97| [39m  })[33m;[39m
 
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/components/Button.test.tsx[2m > [22mButton Component[2m > [22mshould apply custom className
+[31m[1mError[22m: Invalid Chai property: toHaveClass[39m

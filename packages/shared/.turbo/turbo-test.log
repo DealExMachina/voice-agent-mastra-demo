@@ -360,38 +360,3 @@
 
 [31m[1m[7m FAIL [27m[22m[39m src/__tests__/index.test.ts[2m > [22mShared Package[2m > [22mValidation Functions[2m > [22mvalidateUser[2m > [22mshould throw ValidationError for invalid user
 [31m[1mAssertionError[22m: expected error to be instance of ValidationError[39m
-
-- Expected: 
-[Function ValidationError]
-
-+ Received: 
-[ZodError: [
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "id"
-    ]
-  },
-  {
-    "code": "too_small",
-    "minimum": 1,
-    "type": "string",
-    "inclusive": true,
-    "exact": false,
-    "message": "String must contain at least 1 character(s)",
-    "path": [
-      "name"
-    ]
-  },
-  {
-    "validation": "email",
-    "code": "invalid_string",
-    "message": "Invalid email",
-    "path": [
-      "email"
-  
