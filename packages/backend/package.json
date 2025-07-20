@@ -31,7 +31,8 @@
     "joi": "^17.13.3",
     "rate-limiter-flexible": "^5.0.3",
     "compression": "^1.7.5",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "duckdb": "^0.10.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.10",
