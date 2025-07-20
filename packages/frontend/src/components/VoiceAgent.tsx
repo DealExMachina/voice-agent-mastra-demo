@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useVoiceAgent } from '../../hooks/useVoiceAgent.js';
+import { useVoiceAgent } from '../hooks/useVoiceAgent';
 import { ChatHeader } from './chat/ChatHeader.js';
 import { MessageList } from './chat/MessageList.js';
 import { MessageInput } from './chat/MessageInput.js';
