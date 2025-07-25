@@ -253,7 +253,7 @@ describe('Shared Package', () => {
   describe('Error Classes', () => {
     describe('ValidationError', () => {
       it('should create ValidationError with message and issues', () => {
-        const issues = [{ code: 'invalid_type', path: ['id'], message: 'Required' }];
+        const issues = [{ code: 'invalid_type' as const, path: ['id'], message: 'Required', expected: 'string' as const, received: 'undefined' as const }];
         const error = new ValidationError('Validation failed', issues);
         
         expect(error.message).toBe('Validation failed');

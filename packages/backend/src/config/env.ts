@@ -36,7 +36,7 @@ const envSchema = z.object({
   MASTRA_API_KEY: z.string().optional(),
   MASTRA_MODEL: z.string().optional(),
   MEM0_API_KEY: z.string().optional(),
-  MEM0_DATABASE_URL: z.string().url().optional(),
+  MEM0_DATABASE_URL: z.string().optional(),
 });
 
 // Validate environment variables
