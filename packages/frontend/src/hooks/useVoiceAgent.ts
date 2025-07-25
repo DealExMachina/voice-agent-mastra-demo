@@ -50,7 +50,7 @@ export function useVoiceAgent() {
     try {
       updateState({ isLoading: true, error: null });
 
-      const response = await fetch(`${getApiUrl()}/api/sessions`, {
+      const response = await fetch(`${getApiUrl()}/api/v1/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: `user-${Date.now()}` }),
@@ -99,7 +99,7 @@ export function useVoiceAgent() {
     if (!state.session) return;
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/livekit/token`, {
+      const response = await fetch(`${getApiUrl()}/api/v1/livekit/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -160,7 +160,7 @@ export function useVoiceAgent() {
     };
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/messages`, {
+      const response = await fetch(`${getApiUrl()}/api/v1/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(message),

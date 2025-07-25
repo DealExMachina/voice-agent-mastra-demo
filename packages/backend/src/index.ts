@@ -108,6 +108,33 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Legacy session endpoint for backward compatibility
+app.post('/api/sessions', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    const session: Session = {
+      id: generateId(),
+      userId,
+      startTime: new Date(),
+      status: 'active',
+      metadata: {},
+    };
+
+    const createdSession = await database.createSession(session);
+    
+    logger.info(`Created legacy session ${session.id} for user ${userId}`);
+    res.status(201).json({ session: createdSession });
+  } catch (error) {
+    logger.error('Error creating legacy session:', error);
+    res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
 // Legacy message endpoint for Socket.IO compatibility
 app.post('/api/messages', async (req, res) => {
   try {
