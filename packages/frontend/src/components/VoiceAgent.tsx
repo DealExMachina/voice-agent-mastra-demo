@@ -44,14 +44,6 @@ const VoiceAgent: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Left Panel - Entities */}
-      <div className="w-80 bg-white border-r border-gray-200 p-4">
-        <EntityPanel 
-          entities={entities}
-          isActive={conversationActive}
-        />
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <div className="bg-white border-b border-gray-200 p-4">
@@ -66,10 +58,18 @@ const VoiceAgent: React.FC = () => {
         {/* Transcription Display */}
         {conversationActive && (
           <div className="bg-blue-50 border-b border-blue-200 p-4">
-            <div className="text-sm font-medium text-blue-800 mb-2">
-              Live Transcription
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-medium text-blue-800">
+                Live Transcription
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${conversationActive ? 'bg-red-500 animate-pulse' : 'bg-gray-300'}`} />
+                <span className="text-xs text-blue-600">
+                  {conversationActive ? 'Recording' : 'Stopped'}
+                </span>
+              </div>
             </div>
-            <div className="text-blue-900">
+            <div className="text-blue-900 min-h-[1.5rem] bg-white rounded p-2 border border-blue-200">
               {transcription || "Listening..."}
             </div>
           </div>
@@ -98,6 +98,14 @@ const VoiceAgent: React.FC = () => {
             disabled={conversationActive}
           />
         </div>
+      </div>
+
+      {/* Right Panel - Entities */}
+      <div className="w-80 bg-white border-l border-gray-200 p-4 shadow-lg">
+        <EntityPanel 
+          entities={entities}
+          isActive={conversationActive}
+        />
       </div>
     </div>
   );
