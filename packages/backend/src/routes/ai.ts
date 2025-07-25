@@ -313,7 +313,7 @@ router.post('/entities/extract', async (req, res) => {
 router.get('/entities/types', async (req, res) => {
   try {
     const entityTypes = await mastraLocalService.getSupportedEntityTypes();
-
+    
     res.json({
       entityTypes,
       count: entityTypes.length,
@@ -322,6 +322,113 @@ router.get('/entities/types', async (req, res) => {
   } catch (error) {
     logger.error('Error getting entity types:', error);
     res.status(500).json({ error: 'Failed to get entity types' });
+  }
+});
+
+// POST /api/ai/process-transcription - Process real-time transcription
+router.post('/process-transcription', async (req, res) => {
+  try {
+    const { sessionId, content, isFinal } = req.body;
+
+    if (!sessionId || !content) {
+      return res.status(400).json({ error: 'Session ID and content are required' });
+    }
+
+    // Create transcription message
+    const transcriptionMessage = {
+      id: generateId(),
+      sessionId,
+      content,
+      timestamp: new Date(),
+      isFinal,
+      confidence: 0.9, // This would come from the speech recognition service
+    };
+
+    // Process with AI for entity extraction
+    const result = await aiIntegrationService.processTranscription(transcriptionMessage);
+
+    // Store transcription in database
+    await database.storeTranscriptionMessage(transcriptionMessage);
+
+    // Emit real-time updates via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      io.to(sessionId).emit('entities_updated', {
+        sessionId,
+        entities: result.entities,
+        transcription: content,
+      });
+    }
+
+    res.json({
+      success: true,
+      entities: result.entities,
+      memories: result.memories,
+    });
+  } catch (error) {
+    logger.error('Error processing transcription:', error);
+    res.status(500).json({ error: 'Failed to process transcription' });
+  }
+});
+
+// POST /api/ai/generate-summary - Generate conversation summary
+router.post('/generate-summary', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Session ID is required' });
+    }
+
+    // Get session messages
+    const messages = await database.getSessionMessages(sessionId);
+    
+    // Get session entities
+    const session = await database.getSession(sessionId);
+    const entities = session?.conversationState?.entities || [];
+
+    // Generate summary using AI
+    const summary = await aiIntegrationService.generateConversationSummary(
+      messages,
+      entities,
+      sessionId
+    );
+
+    // Store summary in database
+    await database.storeConversationSummary(summary);
+
+    res.json({
+      success: true,
+      summary,
+    });
+  } catch (error) {
+    logger.error('Error generating summary:', error);
+    res.status(500).json({ error: 'Failed to generate summary' });
+  }
+});
+
+// GET /api/ai/summary/:sessionId - Get conversation summary
+router.get('/summary/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Session ID is required' });
+    }
+
+    const summary = await database.getConversationSummary(sessionId);
+
+    if (!summary) {
+      return res.status(404).json({ error: 'Summary not found' });
+    }
+
+    res.json({
+      success: true,
+      summary,
+    });
+  } catch (error) {
+    logger.error('Error getting summary:', error);
+    res.status(500).json({ error: 'Failed to get summary' });
   }
 });
 

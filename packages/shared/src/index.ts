@@ -28,7 +28,41 @@ export interface Session {
   startTime: Date;
   endTime?: Date;
   status: 'active' | 'ended' | 'paused';
+  conversationState?: ConversationState;
   metadata?: Record<string, unknown>;
+}
+
+// New interfaces for conversation flow
+export interface ConversationState {
+  id: string;
+  sessionId: string;
+  status: 'idle' | 'active' | 'paused' | 'ended';
+  startTime?: Date;
+  endTime?: Date;
+  transcription: string;
+  entities: Entity[];
+  summary?: string;
+}
+
+// Real-time transcription message
+export interface TranscriptionMessage {
+  id: string;
+  sessionId: string;
+  content: string;
+  timestamp: Date;
+  isFinal: boolean;
+  confidence: number;
+}
+
+// Conversation summary
+export interface ConversationSummary {
+  id: string;
+  sessionId: string;
+  summary: string;
+  keyPoints: string[];
+  entities: Entity[];
+  sentiment: 'positive' | 'negative' | 'neutral';
+  timestamp: Date;
 }
 
 export interface User {
@@ -84,7 +118,37 @@ export const SessionSchema = z.object({
   startTime: z.date(),
   endTime: z.date().optional(),
   status: z.enum(['active', 'ended', 'paused']),
+  conversationState: z.object({
+    id: z.string(),
+    sessionId: z.string(),
+    status: z.enum(['idle', 'active', 'paused', 'ended']),
+    startTime: z.date().optional(),
+    endTime: z.date().optional(),
+    transcription: z.string(),
+    entities: z.array(z.any()),
+    summary: z.string().optional(),
+  }).optional(),
   metadata: z.record(z.unknown()).optional(),
+});
+
+// New validation schemas
+export const TranscriptionMessageSchema = z.object({
+  id: z.string().min(1),
+  sessionId: z.string().min(1),
+  content: z.string().min(1),
+  timestamp: z.date(),
+  isFinal: z.boolean(),
+  confidence: z.number().min(0).max(1),
+});
+
+export const ConversationSummarySchema = z.object({
+  id: z.string().min(1),
+  sessionId: z.string().min(1),
+  summary: z.string().min(1),
+  keyPoints: z.array(z.string()),
+  entities: z.array(z.any()),
+  sentiment: z.enum(['positive', 'negative', 'neutral']),
+  timestamp: z.date(),
 });
 
 export const UserPreferencesSchema = z.object({
@@ -148,6 +212,28 @@ export function validateSession(data: unknown): Session {
   }
 }
 
+export function validateTranscriptionMessage(data: unknown): TranscriptionMessage {
+  try {
+    return TranscriptionMessageSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError('Invalid transcription message', error.issues);
+    }
+    throw error;
+  }
+}
+
+export function validateConversationSummary(data: unknown): ConversationSummary {
+  try {
+    return ConversationSummarySchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError('Invalid conversation summary', error.issues);
+    }
+    throw error;
+  }
+}
+
 export function validateUser(data: unknown): User {
   try {
     return UserSchema.parse(data);
@@ -194,6 +280,14 @@ export function isSession(obj: unknown): obj is Session {
   return SessionSchema.safeParse(obj).success;
 }
 
+export function isTranscriptionMessage(obj: unknown): obj is TranscriptionMessage {
+  return TranscriptionMessageSchema.safeParse(obj).success;
+}
+
+export function isConversationSummary(obj: unknown): obj is ConversationSummary {
+  return ConversationSummarySchema.safeParse(obj).success;
+}
+
 // Safe parsing functions that return results instead of throwing
 export function safeParseVoiceMessage(data: unknown) {
   return VoiceMessageSchema.safeParse(data);
@@ -205,6 +299,14 @@ export function safeParseAgentResponse(data: unknown) {
 
 export function safeParseSession(data: unknown) {
   return SessionSchema.safeParse(data);
+}
+
+export function safeParseTranscriptionMessage(data: unknown) {
+  return TranscriptionMessageSchema.safeParse(data);
+}
+
+export function safeParseConversationSummary(data: unknown) {
+  return ConversationSummarySchema.safeParse(data);
 }
 
 // Utility types

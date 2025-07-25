@@ -31,6 +31,10 @@ await fs.mkdir(dataDir, { recursive: true });
 // Initialize database
 await database.initialize();
 
+// Initialize AI services
+const { aiIntegrationService } = await import('./services/ai-integration.js');
+await aiIntegrationService.initialize();
+
 // Rate limiters
 const rateLimitConfig = getRateLimitConfig();
 const generalLimiter = new RateLimiterMemory({
@@ -213,6 +217,113 @@ io.on('connection', (socket) => {
     } catch (error) {
       logger.error('Error processing voice message:', error);
       socket.emit('error', { message: 'Failed to process voice message' });
+    }
+  });
+
+  // New Socket.IO events for conversation flow
+  socket.on('start_conversation', async (data) => {
+    try {
+      const { sessionId } = data;
+      const session = await database.getSession(sessionId);
+      
+      if (session) {
+        // Update session conversation state
+        const conversationState = {
+          id: `conv_${Date.now()}`,
+          sessionId,
+          status: 'active',
+          startTime: new Date(),
+          transcription: '',
+          entities: [],
+        };
+        
+        await database.updateSessionConversationState(sessionId, conversationState);
+        socket.to(sessionId).emit('conversation_started', { sessionId });
+        logger.info(`Conversation started for session ${sessionId}`);
+      } else {
+        socket.emit('error', { message: 'Session not found' });
+      }
+    } catch (error) {
+      logger.error('Error starting conversation:', error);
+      socket.emit('error', { message: 'Failed to start conversation' });
+    }
+  });
+
+  socket.on('end_conversation', async (data) => {
+    try {
+      const { sessionId } = data;
+      const session = await database.getSession(sessionId);
+      
+      if (session) {
+        // Update session conversation state
+        const conversationState = {
+          ...session.conversationState,
+          status: 'ended',
+          endTime: new Date(),
+        };
+        
+        await database.updateSessionConversationState(sessionId, conversationState);
+        socket.to(sessionId).emit('conversation_ended', { sessionId });
+        logger.info(`Conversation ended for session ${sessionId}`);
+      } else {
+        socket.emit('error', { message: 'Session not found' });
+      }
+    } catch (error) {
+      logger.error('Error ending conversation:', error);
+      socket.emit('error', { message: 'Failed to end conversation' });
+    }
+  });
+
+  socket.on('transcription_update', async (data) => {
+    try {
+      const { sessionId, content, isFinal } = data;
+      
+      if (!sessionId || !content) {
+        socket.emit('error', { message: 'Session ID and content are required' });
+        return;
+      }
+
+      // Process transcription with AI for entity extraction directly
+      try {
+        const { aiIntegrationService } = await import('./services/ai-integration.js');
+        const { generateId } = await import('@voice-agent-mastra-demo/shared');
+        
+        // Create transcription message
+        const transcriptionMessage = {
+          id: generateId(),
+          sessionId,
+          content,
+          timestamp: new Date(),
+          isFinal,
+          confidence: 0.9,
+        };
+
+        // Process with AI for entity extraction
+        const result = await aiIntegrationService.processTranscription(transcriptionMessage);
+
+        // Store transcription in database
+        await database.storeTranscriptionMessage(transcriptionMessage);
+        
+        // Emit real-time entity updates
+        socket.to(sessionId).emit('entities_updated', {
+          sessionId,
+          entities: result.entities || [],
+          transcription: content,
+        });
+        
+        logger.info(`Transcription processed for session ${sessionId}: ${(result.entities || []).length} entities`);
+      } catch (processError) {
+        logger.error('Error processing transcription:', processError);
+        // Still emit the transcription even if AI processing fails
+        socket.to(sessionId).emit('entities_updated', {
+          sessionId,
+          entities: [],
+          transcription: content,
+        });
+      }
+    } catch (error) {
+      logger.error('Error processing transcription:', error);
+      socket.emit('error', { message: 'Failed to process transcription' });
     }
   });
 

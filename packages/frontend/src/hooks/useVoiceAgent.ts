@@ -12,10 +12,40 @@ import {
   VoiceMessage, 
   AgentResponse, 
   Session,
+  Entity,
+  ConversationSummary,
   type Message
 } from '@voice-agent-mastra-demo/shared';
 
 import { getApiUrl } from '../config/env.js';
+
+// Type declarations for browser APIs
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: () => void;
+  start: () => void;
+  stop: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
 
 interface VoiceAgentState {
   messages: Message[];
@@ -27,6 +57,13 @@ interface VoiceAgentState {
   isRecording: boolean;
   room: Room | null;
   socket: Socket | null;
+  
+  // New state for conversation flow
+  conversationActive: boolean;
+  transcription: string;
+  entities: Entity[];
+  summary: ConversationSummary | null;
+  isTranscribing: boolean;
 }
 
 export function useVoiceAgent() {
@@ -40,11 +77,117 @@ export function useVoiceAgent() {
     isRecording: false,
     room: null,
     socket: null,
+    
+    // New state for conversation flow
+    conversationActive: false,
+    transcription: '',
+    entities: [],
+    summary: null,
+    isTranscribing: false,
   });
+
+  // Additional state for speech recognition management
+  const [speechRecognition, setSpeechRecognition] = useState<SpeechRecognition | null>(null);
+  const [currentTranscription, setCurrentTranscription] = useState<string>('');
 
   const updateState = useCallback((updates: Partial<VoiceAgentState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
+
+  const generateSummary = useCallback(async (sessionId: string) => {
+    try {
+      const response = await fetch(`${getApiUrl()}/api/v1/ai/generate-summary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate summary');
+      
+      const { summary } = await response.json();
+      return summary;
+    } catch (error) {
+      console.error('Failed to generate summary:', error);
+      return null;
+    }
+  }, []);
+
+  const startTranscription = useCallback(async () => {
+    try {
+      // Check if SpeechRecognition is available
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        throw new Error('Speech recognition not supported in this browser');
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = '';
+        let finalTranscript = currentTranscription;
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        const newTranscription = finalTranscript + interimTranscript;
+        updateState({ transcription: newTranscription });
+        
+        // Send final transcription to backend for entity extraction
+        if (event.results[event.results.length - 1].isFinal && state.socket && state.session) {
+          setCurrentTranscription(finalTranscript);
+          state.socket.emit('transcription_update', {
+            sessionId: state.session.id,
+            content: finalTranscript,
+            isFinal: true
+          });
+        }
+      };
+
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Speech recognition error:', event.error);
+        updateState({ isTranscribing: false });
+      };
+
+      recognition.onend = () => {
+        // Only restart if conversation is still active and this is the current recognition
+        if (state.conversationActive && speechRecognition === recognition) {
+          setTimeout(() => {
+            if (state.conversationActive) {
+              try {
+                recognition.start();
+              } catch (error) {
+                // Handle restart error silently
+              }
+            }
+          }, 100);
+        }
+      };
+      
+      setSpeechRecognition(recognition);
+      recognition.start();
+      updateState({ isTranscribing: true });
+    } catch (error) {
+      updateState({ error: 'Speech recognition not available' });
+    }
+  }, [speechRecognition, currentTranscription, state.socket, state.session, state.conversationActive, updateState]);
+
+  const stopTranscription = useCallback(async () => {
+    if (speechRecognition) {
+      speechRecognition.stop();
+      setSpeechRecognition(null);
+    }
+    updateState({ isTranscribing: false });
+  }, [speechRecognition, updateState]);
 
   const initializeSession = useCallback(async () => {
     try {
@@ -85,6 +228,22 @@ export function useVoiceAgent() {
         }));
       });
 
+      // New Socket.IO events for real-time updates
+      socket.on('entities_updated', (data: { sessionId: string; entities: Entity[]; transcription: string }) => {
+        setState(prev => ({
+          ...prev,
+          entities: data.entities,
+          transcription: data.transcription,
+        }));
+      });
+
+      socket.on('conversation_summary', (summary: ConversationSummary) => {
+        setState(prev => ({
+          ...prev,
+          summary,
+        }));
+      });
+
       updateState({ socket, isConnected: true });
     } catch (error) {
       console.error('Failed to initialize session:', error);
@@ -94,6 +253,48 @@ export function useVoiceAgent() {
       });
     }
   }, [updateState]);
+
+  // New methods for conversation flow
+  const startConversation = useCallback(async () => {
+    if (!state.session) return;
+    
+    try {
+      updateState({ 
+        conversationActive: true, 
+        transcription: '', 
+        entities: [],
+        summary: null 
+      });
+      
+      // Start transcription service
+      await startTranscription();
+      
+      // Initialize AI processing
+      state.socket?.emit('start_conversation', { sessionId: state.session.id });
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    }
+  }, [state.session, state.socket, updateState, startTranscription]);
+
+  const stopConversation = useCallback(async () => {
+    if (!state.session) return;
+    
+    try {
+      updateState({ conversationActive: false, isTranscribing: false });
+      
+      // Stop transcription
+      await stopTranscription();
+      
+      // Generate summary
+      const summary = await generateSummary(state.session.id);
+      updateState({ summary });
+      
+      // End conversation
+      state.socket?.emit('end_conversation', { sessionId: state.session.id });
+    } catch (error) {
+      console.error('Failed to stop conversation:', error);
+    }
+  }, [state.session, state.socket, updateState, stopTranscription, generateSummary]);
 
   const initializeLiveKit = useCallback(async () => {
     if (!state.session) return;
@@ -212,6 +413,9 @@ export function useVoiceAgent() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (speechRecognition) {
+        speechRecognition.stop();
+      }
       if (state.socket) {
         state.socket.disconnect();
       }
@@ -219,11 +423,13 @@ export function useVoiceAgent() {
         state.room.disconnect();
       }
     };
-  }, [state.socket, state.room]);
+  }, [speechRecognition, state.socket, state.room]);
 
   return {
     ...state,
     initializeSession,
+    startConversation,
+    stopConversation,
     sendMessage,
     toggleRecording,
     clearError,

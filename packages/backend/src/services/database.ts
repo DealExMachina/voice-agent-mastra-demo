@@ -1,6 +1,5 @@
 import duckdb from 'duckdb';
 import { promisify } from 'util';
-import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 import type { Session, Message, User } from '@voice-agent-mastra-demo/shared';
 
@@ -199,64 +198,108 @@ export class DatabaseService {
   }
 
   private async createTables(): Promise<void> {
-    const tables = [
-      // Sessions table with improved schema
-      `CREATE TABLE IF NOT EXISTS sessions (
+    // Sessions table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS sessions (
         id VARCHAR PRIMARY KEY,
         user_id VARCHAR NOT NULL,
-        start_time TIMESTAMP NOT NULL,
+        start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         end_time TIMESTAMP,
-        status VARCHAR NOT NULL CHECK (status IN ('active', 'ended', 'paused')),
+        status VARCHAR(20) DEFAULT 'active',
+        conversation_state JSON,
         metadata JSON,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`,
+      )
+    `);
 
-      // Messages table with improved schema
-      `CREATE TABLE IF NOT EXISTS messages (
+    // Messages table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS messages (
         id VARCHAR PRIMARY KEY,
         session_id VARCHAR NOT NULL,
-        user_id VARCHAR NOT NULL,
         content TEXT NOT NULL,
-        timestamp TIMESTAMP NOT NULL,
-        type VARCHAR NOT NULL CHECK (type IN ('user', 'agent')),
-        confidence DECIMAL(3,2),
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id VARCHAR NOT NULL,
+        type VARCHAR(20) NOT NULL,
+        confidence REAL DEFAULT 1.0,
         metadata JSON,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (session_id) REFERENCES sessions(id)
-      )`,
+      )
+    `);
 
-      // Users table with improved schema
-      `CREATE TABLE IF NOT EXISTS users (
+    // Users table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY,
         name VARCHAR NOT NULL,
         email VARCHAR UNIQUE NOT NULL,
-        preferences JSON NOT NULL,
+        preferences JSON,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`,
+      )
+    `);
 
-      // Analytics table for performance monitoring
-      `CREATE TABLE IF NOT EXISTS analytics (
-        id INTEGER PRIMARY KEY,
+    // Analytics table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS analytics (
+        id VARCHAR PRIMARY KEY,
         event_type VARCHAR NOT NULL,
         session_id VARCHAR,
         user_id VARCHAR,
         metadata JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`
-    ];
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES sessions(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
 
-    for (const tableSql of tables) {
-      await this.executeStatement(tableSql);
-    }
+    // Conversation summaries table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS conversation_summaries (
+        id VARCHAR PRIMARY KEY,
+        session_id VARCHAR NOT NULL,
+        summary TEXT NOT NULL,
+        key_points JSON,
+        entities JSON,
+        sentiment VARCHAR(20),
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES sessions(id)
+      )
+    `);
 
-    // Create sequence for analytics ID if it doesn't exist
-    try {
-      await this.executeStatement('CREATE SEQUENCE IF NOT EXISTS analytics_id_seq');
-    } catch (error) {
-      logger.warn('Failed to create analytics sequence:', error);
-    }
+    // Transcription messages table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS transcription_messages (
+        id VARCHAR PRIMARY KEY,
+        session_id VARCHAR NOT NULL,
+        content TEXT NOT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_final BOOLEAN DEFAULT FALSE,
+        confidence REAL DEFAULT 0.0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES sessions(id)
+      )
+    `);
+
+    // Entities table
+    await this.executeStatement(`
+      CREATE TABLE IF NOT EXISTS entities (
+        id VARCHAR PRIMARY KEY,
+        session_id VARCHAR NOT NULL,
+        type VARCHAR NOT NULL,
+        value TEXT NOT NULL,
+        confidence REAL DEFAULT 1.0,
+        metadata JSON,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        message_id VARCHAR,
+        FOREIGN KEY (session_id) REFERENCES sessions(id)
+      )
+    `);
+
+    logger.info('Database tables created successfully');
   }
 
   private async createIndexes(): Promise<void> {
@@ -645,26 +688,34 @@ export class DatabaseService {
     totalAnalytics: number;
     databaseSize: string;
   }> {
-    const [sessionsResult, messagesResult, usersResult, activeSessionsResult, analyticsResult] = await Promise.all([
-      this.executeQuery('SELECT COUNT(*) as count FROM sessions'),
-      this.executeQuery('SELECT COUNT(*) as count FROM messages'),
-      this.executeQuery('SELECT COUNT(*) as count FROM users'),
-      this.executeQuery('SELECT COUNT(*) as count FROM sessions WHERE status = ?', ['active']),
-      this.executeQuery('SELECT COUNT(*) as count FROM analytics'),
-    ]);
+    try {
+      const [sessionsResult, messagesResult, usersResult, activeSessionsResult, analyticsResult] = await Promise.all([
+        this.executeQuery('SELECT COUNT(*) as count FROM sessions').catch(() => ({ data: [{ count: 0 }] })),
+        this.executeQuery('SELECT COUNT(*) as count FROM messages').catch(() => ({ data: [{ count: 0 }] })),
+        this.executeQuery('SELECT COUNT(*) as count FROM users').catch(() => ({ data: [{ count: 0 }] })),
+        this.executeQuery('SELECT COUNT(*) as count FROM sessions WHERE status = ?', ['active']).catch(() => ({ data: [{ count: 0 }] })),
+        this.executeQuery('SELECT COUNT(*) as count FROM analytics').catch(() => ({ data: [{ count: 0 }] })),
+      ]);
 
-    // Get database size (approximate) - DuckDB doesn't have pg_column_size
-    // For now, return a placeholder since DuckDB doesn't provide easy table size info
-    const sizeResult = { data: [{ total_size: 0 }] };
-
-    return {
-      sessions: sessionsResult.data[0]?.count || 0,
-      messages: messagesResult.data[0]?.count || 0,
-      users: usersResult.data[0]?.count || 0,
-      activeSessions: activeSessionsResult.data[0]?.count || 0,
-      totalAnalytics: analyticsResult.data[0]?.count || 0,
-      databaseSize: this.formatBytes(sizeResult.data[0]?.total_size || 0),
-    };
+      return {
+        sessions: sessionsResult.data[0]?.count || 0,
+        messages: messagesResult.data[0]?.count || 0,
+        users: usersResult.data[0]?.count || 0,
+        activeSessions: activeSessionsResult.data[0]?.count || 0,
+        totalAnalytics: analyticsResult.data[0]?.count || 0,
+        databaseSize: this.formatBytes(0),
+      };
+    } catch (error) {
+      logger.error('Error getting database stats:', error);
+      return {
+        sessions: 0,
+        messages: 0,
+        users: 0,
+        activeSessions: 0,
+        totalAnalytics: 0,
+        databaseSize: '0 Bytes',
+      };
+    }
   }
 
   private formatBytes(bytes: number): string {
@@ -721,7 +772,111 @@ export class DatabaseService {
 
   // Public method for testing queries
   async testQuery(sql: string, params: unknown[] = []): Promise<any> {
-    return this.executeQuery(sql, params);
+    try {
+      const result = await this.executeQuery(sql, params);
+      return result;
+    } catch (error) {
+      logger.error('Test query failed:', error);
+      throw error;
+    }
+  }
+
+  // New methods for conversation summaries
+  async storeConversationSummary(summary: any): Promise<void> {
+    await this.executeStatement(
+      `INSERT INTO conversation_summaries (id, session_id, summary, key_points, entities, sentiment, timestamp)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        summary.id,
+        summary.sessionId,
+        summary.summary,
+        JSON.stringify(summary.keyPoints),
+        JSON.stringify(summary.entities),
+        summary.sentiment,
+        summary.timestamp,
+      ]
+    );
+  }
+
+  async getConversationSummary(sessionId: string): Promise<any | null> {
+    const result = await this.executeQuery<any>(
+      `SELECT * FROM conversation_summaries WHERE session_id = ? ORDER BY timestamp DESC LIMIT 1`,
+      [sessionId]
+    );
+    
+    if (result.data.length === 0) return null;
+    
+    const row = result.data[0];
+    return {
+      id: row.id,
+      sessionId: row.session_id,
+      summary: row.summary,
+      keyPoints: JSON.parse(row.key_points || '[]'),
+      entities: JSON.parse(row.entities || '[]'),
+      sentiment: row.sentiment,
+      timestamp: new Date(row.timestamp),
+    };
+  }
+
+  // New methods for transcription messages
+  async storeTranscriptionMessage(transcription: any): Promise<void> {
+    await this.executeStatement(
+      `INSERT INTO transcription_messages (id, session_id, content, timestamp, is_final, confidence)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        transcription.id,
+        transcription.sessionId,
+        transcription.content,
+        transcription.timestamp,
+        transcription.isFinal,
+        transcription.confidence,
+      ]
+    );
+  }
+
+  async getSessionTranscriptions(sessionId: string): Promise<any[]> {
+    const result = await this.executeQuery<any>(
+      `SELECT * FROM transcription_messages WHERE session_id = ? ORDER BY timestamp ASC`,
+      [sessionId]
+    );
+    
+    return result.data.map(row => ({
+      id: row.id,
+      sessionId: row.session_id,
+      content: row.content,
+      timestamp: new Date(row.timestamp),
+      isFinal: row.is_final,
+      confidence: row.confidence,
+    }));
+  }
+
+  async updateSessionConversationState(sessionId: string, conversationState: any): Promise<void> {
+    await this.executeStatement(
+      `UPDATE sessions SET conversation_state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [JSON.stringify(conversationState), sessionId]
+    );
+  }
+
+  /**
+   * Persist extracted entities for a session
+   */
+  async storeEntities(sessionId: string, entities: import('@voice-agent-mastra-demo/shared').Entity[]): Promise<void> {
+    if (!entities.length) return;
+
+    const insertSQL = `INSERT INTO entities (id, session_id, type, value, confidence, metadata, timestamp)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+    for (const ent of entities) {
+      await this.executeStatement(insertSQL, [
+        ent.id,
+        sessionId,
+        ent.type,
+        ent.value,
+        ent.confidence,
+        JSON.stringify(ent.metadata ?? {}),
+        new Date(),
+      ]);
+    }
   }
 }
 
