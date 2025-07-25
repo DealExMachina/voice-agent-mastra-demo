@@ -1,5 +1,5 @@
 
-
-> @voice-agent-mastra-demo/shared@1.0.0 lint /workspace/packages/shared
+
+> @voice-agent-mastra-demo/shared@1.0.0 lint /Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/shared
 > eslint src --ext .ts
 

@@ -208,6 +208,58 @@ export function safeParseSession(data: unknown) {
 }
 
 // Utility types
+// Entity and Memory types for Mastra and MEM0 integration
+export type EntityType = 
+  | 'person' 
+  | 'organization' 
+  | 'location' 
+  | 'date' 
+  | 'time' 
+  | 'money' 
+  | 'percentage' 
+  | 'email' 
+  | 'phone' 
+  | 'url' 
+  | 'product' 
+  | 'service' 
+  | 'event' 
+  | 'concept' 
+  | 'custom';
+
+export type MemoryType = 
+  | 'conversation' 
+  | 'fact' 
+  | 'preference' 
+  | 'intent' 
+  | 'emotion' 
+  | 'context' 
+  | 'relationship' 
+  | 'custom';
+
+export interface Entity {
+  id: string;
+  type: EntityType;
+  value: string;
+  confidence: number;
+  metadata?: Record<string, unknown>;
+  startIndex?: number;
+  endIndex?: number;
+}
+
+export interface Memory {
+  id: string;
+  type: MemoryType;
+  content: string;
+  userId: string;
+  sessionId?: string;
+  messageId?: string;
+  entities?: string[];
+  metadata?: Record<string, unknown>;
+  timestamp: Date;
+  importance: number; // 0-1 scale
+  tags?: string[];
+}
+
 export type Message = VoiceMessage | AgentResponse;
 export type MessageType = Message['type'];
 export type SessionStatus = Session['status'];

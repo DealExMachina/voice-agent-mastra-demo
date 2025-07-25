@@ -4,6 +4,7 @@ import messagesRouter from './messages.js';
 import usersRouter from './users.js';
 import analyticsRouter from './analytics.js';
 import livekitRouter from './livekit.js';
+import aiRouter from './ai.js';
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -132,6 +133,20 @@ router.get('/', (req, res) => {
           'GET /analytics - Get LiveKit analytics',
         ],
       },
+      ai: {
+        base: `${API_PREFIX}/ai`,
+        endpoints: [
+          'GET /status - Get AI services status',
+          'POST /process-message - Process message with AI',
+          'POST /process-conversation - Process conversation with AI',
+          'POST /search-memories - Search for memories',
+          'GET /memories/user/:userId - Get user memories',
+          'GET /memories/session/:sessionId - Get session memories',
+          'GET /memories/stats/:userId - Get memory statistics',
+          'POST /entities/extract - Extract entities from text',
+          'GET /entities/types - Get supported entity types',
+        ],
+      },
     },
     features: [
       'Real-time voice communication with LiveKit',
@@ -141,6 +156,9 @@ router.get('/', (req, res) => {
       'Comprehensive analytics and monitoring',
       'WebSocket support for real-time updates',
       'Rate limiting and security',
+      'AI-powered entity extraction with Mastra',
+      'Memory management with MEM0',
+      'Intelligent conversation processing',
     ],
     technologies: [
       'Express.js',
@@ -149,6 +167,8 @@ router.get('/', (req, res) => {
       'Socket.IO',
       'Zod validation',
       'TypeScript',
+      'Mastra AI',
+      'MEM0',
     ],
   });
 });
@@ -159,6 +179,7 @@ router.use('/messages', messagesRouter);
 router.use('/users', usersRouter);
 router.use('/analytics', analyticsRouter);
 router.use('/livekit', livekitRouter);
+router.use('/ai', aiRouter);
 
 // 404 handler for API routes
 router.use('*', (req, res) => {
@@ -173,6 +194,7 @@ router.use('*', (req, res) => {
       '/users',
       '/analytics',
       '/livekit',
+      '/ai',
     ],
   });
 });

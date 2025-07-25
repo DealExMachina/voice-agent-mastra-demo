@@ -1,15 +1,71 @@
 
-
-> @voice-agent-mastra-demo/backend@1.0.0 lint /workspace/packages/backend
+
+> @voice-agent-mastra-demo/backend@1.0.0 lint /Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend
 > eslint src --ext .ts
 
 [0m[0m
-[0m[4m/workspace/packages/backend/src/index.ts[24m[0m
-[0m   [2m20:3[22m   [31merror[39m  'Message' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
-[0m   [2m84:12[22m  [31merror[39m  'rejRes' is defined but never used   [2m@typescript-eslint/no-unused-vars[22m[0m
-[0m  [2m156:16[22m  [31merror[39m  'error' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
-[0m  [2m299:69[22m  [31merror[39m  '_next' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/__tests__/database.test.ts[24m[0m
+[0m  [2m0:0[22m  [31merror[39m  Parsing error: "parserOptions.project" has been provided for @typescript-eslint/parser.[0m
+[0mThe file was not found in any of the provided project(s): src/__tests__/database.test.ts[0m
 [0m[0m
-[0m[31m[1m✖ 4 problems (4 errors, 0 warnings)[22m[39m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/__tests__/fixtures.ts[24m[0m
+[0m  [2m134:10[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m139:10[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m157:46[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m166:14[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/index.ts[24m[0m
+[0m  [2m13:3[22m   [31merror[39m  'generateId' is defined but never used             [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m18:3[22m   [31merror[39m  'Session' is defined but never used                [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m41:7[22m   [31merror[39m  'tokenLimiter' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m82:12[22m  [31merror[39m  'rejRes' is defined but never used                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/middleware/errorHandler.ts[24m[0m
+[0m   [2m28:3[22m   [31merror[39m    'next' is defined but never used                                                                                         [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m32:16[22m  [33mwarning[39m  Unexpected any. Specify a different type                                                                                 [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m55:24[22m  [33mwarning[39m  Unexpected any. Specify a different type                                                                                 [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m58:24[22m  [33mwarning[39m  Unexpected any. Specify a different type                                                                                 [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m84:24[22m  [33mwarning[39m  Unexpected any. Specify a different type                                                                                 [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m112:34[22m  [31merror[39m    The `Function` type accepts any function-like value.[0m
+[0mPrefer explicitly defining any function parameters and return type  [2m@typescript-eslint/no-unsafe-function-type[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/routes/analytics.ts[24m[0m
+[0m  [2m331:41[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m370:80[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/routes/livekit.ts[24m[0m
+[0m    [2m5:10[22m  [31merror[39m    'config' is defined but never used                   [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m19:7[22m   [31merror[39m    'RoomInfoSchema' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m383:83[22m  [33mwarning[39m  Unexpected any. Specify a different type             [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/routes/sessions.ts[24m[0m
+[0m    [2m5:22[22m  [31merror[39m  'validateSession' is defined but never used   [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m5:39[22m  [31merror[39m  'safeParseSession' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m133:11[22m  [31merror[39m  'stats' is assigned a value but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/routes/users.ts[24m[0m
+[0m    [2m5:22[22m  [31merror[39m    'validateUser' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m54:11[22m  [31merror[39m    'allUsers' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m178:80[22m  [33mwarning[39m  Unexpected any. Specify a different type       [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m381:80[22m  [33mwarning[39m  Unexpected any. Specify a different type       [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend/src/services/database.ts[24m[0m
+[0m    [2m3:10[22m  [31merror[39m    'config' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m16:27[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m101:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m135:40[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m322:35[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m387:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m402:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m451:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m469:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m487:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m528:35[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m545:35[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m594:52[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m600:34[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m723:65[22m  [33mwarning[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[31m[1m✖ 42 problems (15 errors, 27 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m
 [41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m

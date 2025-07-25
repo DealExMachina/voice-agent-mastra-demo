@@ -1,6 +1,6 @@
 {
   "name": "@voice-agent-mastra-demo/shared",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared utilities and types for Voice Agent Mastra Demo",
   "type": "module",
   "main": "dist/index.js",

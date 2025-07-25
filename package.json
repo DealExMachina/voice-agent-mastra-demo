@@ -1,6 +1,6 @@
 {
   "name": "voice-agent-mastra-demo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Voice Agent Demo with Mastra, mem0, and LiveKit - Modern TypeScript Monorepo",
   "private": true,
   "type": "module",

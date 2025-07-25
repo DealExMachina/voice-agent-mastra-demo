@@ -1,6 +1,6 @@
 {
   "name": "@voice-agent-mastra-demo/frontend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Frontend UI for Voice Agent Demo using React and Tailwind",
   "type": "module",
   "private": true,

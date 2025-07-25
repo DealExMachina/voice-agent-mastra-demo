@@ -1,53 +1,258 @@
 
-
-> @voice-agent-mastra-demo/backend@1.0.0 test /workspace/packages/backend
+
+> @voice-agent-mastra-demo/backend@1.0.0 test /Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend
 > vitest
 
 
-[1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/workspace/packages/backend[39m
+[1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/Users/jeanbapt/Library/Mobile Documents/com~apple~CloudDocs/Clients/SALESSCAN/voice-agent-mastra-demo/packages/backend[39m
 
-[90mstdout[2m | src/__tests__/database.test.ts
-[22m[39mSetting up test environment...
-Cleaning up test environment...
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
 
-[?25l [32m✓[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (10)[22m
-   [32m✓[39m DatabaseService[2m (10)[22m
-     [32m✓[39m Basic Functionality[2m (3)[22m
-       [32m✓[39m should be able to create a DatabaseService instance
-       [32m✓[39m should have initialize method
-       [32m✓[39m should have close method
-     [32m✓[39m Session Operations[2m (3)[22m
-       [32m✓[39m should have createSession method
-       [32m✓[39m should have getSession method
-       [32m✓[39m should have updateSession method
-     [32m✓[39m Message Operations[2m (2)[22m
-       [32m✓[39m should have addMessage method
-       [32m✓[39m should have getSessionMessages method
-     [32m✓[39m User Operations[2m (2)[22m
-       [32m✓[39m should have createUser method
-       [32m✓[39m should have getUser method
-[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m✓[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (10)[22m
-   [32m✓[39m DatabaseService[2m (10)[22m
-     [32m✓[39m Basic Functionality[2m (3)[22m
-       [32m✓[39m should be able to create a DatabaseService instance
-       [32m✓[39m should have initialize method
-       [32m✓[39m should have close method
-     [32m✓[39m Session Operations[2m (3)[22m
-       [32m✓[39m should have createSession method
-       [32m✓[39m should have getSession method
-       [32m✓[39m should have updateSession method
-     [32m✓[39m Message Operations[2m (2)[22m
-       [32m✓[39m should have addMessage method
-       [32m✓[39m should have getSessionMessages method
-     [32m✓[39m User Operations[2m (2)[22m
-       [32m✓[39m should have createUser method
-       [32m✓[39m should have getUser method
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
 
-[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
-[2m      Tests [22m [1m[32m10 passed[39m[22m[90m (10)[39m
-[2m   Start at [22m 15:54:43
-[2m   Duration [22m 340ms[2m (transform 90ms, setup 32ms, collect 111ms, tests 6ms, environment 0ms, prepare 60ms)[22m
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
 
-[1m[7m[32m PASS [39m[27m[22m [32mWaiting for file changes...[39m
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 07:30:04
+[2m   Duration [22m 361ms[2m (transform 67ms, setup 25ms, collect 0ms, tests 0ms, environment 0ms, prepare 80ms)[22m
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
-[?25h
+c[3J[1m[7m[34m RERUN [39m[27m[22m [34m[2msrc/config/env.ts [22m[34mx1 [34m[39m
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 07:34:52
+[2m   Duration [22m 50ms
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[7m[34m RERUN [39m[27m[22m [34m[2msrc/config/env.ts [22m[34mx2 [34m[39m
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 07:35:56
+[2m   Duration [22m 4ms
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[7m[34m RERUN [39m[27m[22m [34m[2mpackage.json [22m[34mx3 [34m[39m
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 08:27:47
+[2m   Duration [22m 5ms
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[7m[34m RERUN [39m[27m[22m [34m[2mpackage.json [22m[34mx4 [34m[39m
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 08:28:03
+[2m   Duration [22m 7ms
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[7m[34m RERUN [39m[27m[22m [34m[2mpackage.json [22m[34mx5 [34m[39m
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 08:31:00
+[2m   Duration [22m 5ms
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[7m[34m RERUN [39m[27m[22m [34m[2mpackage.json [22m[34mx6 [34m[39m
+
+ [31m❯[39m [2msrc/__tests__/[22mdatabase[2m.test.ts[22m[2m (0)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/database.test.ts[2m [ src/__tests__/database.test.ts ][22m
+[31m[1mError[22m: [vitest] No "default" export is defined on the "duckdb" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("duckdb"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m new DatabaseService src/services/database.ts:[2m41:19[22m[39m
+    [90m 39| [39m
+    [90m 40| [39m    [90m// Initialize database with configuration[39m
+    [90m 41| [39m    [35mthis[39m[33m.[39mdb [33m=[39m [35mnew[39m duckdb[33m.[39m[33mDatabase[39m([35mthis[39m[33m.[39mconfig[33m.[39mpath)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m 42| [39m    
+    [90m 43| [39m    [90m// Configure database settings[39m
+[90m [2m❯[22m src/services/database.ts:[2m729:25[22m[39m
+[90m [2m❯[22m src/__tests__/database.test.ts:[2m23:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+

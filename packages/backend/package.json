@@ -1,11 +1,12 @@
 {
   "name": "@voice-agent-mastra-demo/backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backend API with Mastra, mem0, and LiveKit for Voice Agent Demo",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "mastra:dev": "mastra dev",
     "build": "tsc --build",
     "start": "node dist/index.js",
     "clean": "rimraf dist .tsbuildinfo",
@@ -16,6 +17,8 @@
   },
   "dependencies": {
     "@livekit/rtc-node": "^0.10.2",
+    "@mastra/core": "^0.11.1",
+    "@mastra/memory": "^0.11.5",
     "@voice-agent-mastra-demo/shared": "workspace:*",
     "compression": "^1.7.5",
     "cors": "^2.8.5",
@@ -49,6 +52,7 @@
     "@vitest/coverage-v8": "^2.1.8",
     "eslint": "^9.18.0",
     "jsdom": "^26.1.0",
+    "mastra": "^0.10.15",
     "nodemon": "^3.1.9",
     "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
