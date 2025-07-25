@@ -1,5 +1,0 @@
-
-
-> @voice-agent-mastra-demo/shared@1.0.0 type-check /workspace/packages/shared
-> tsc --noEmit
-

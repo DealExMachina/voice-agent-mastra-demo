@@ -1,5 +1,0 @@
-
-
-> @voice-agent-mastra-demo/frontend@1.0.0 type-check /workspace/packages/frontend
-> tsc --noEmit
-
