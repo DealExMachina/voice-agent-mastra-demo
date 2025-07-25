@@ -107,4 +107,4 @@ Thumbs.db
 .livekit/
 
 # Mastra
-.mastra/ 
+.mastra/ packages/backend/data/

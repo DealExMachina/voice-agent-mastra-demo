@@ -1,172 +1,63 @@
-import duckdb from 'duckdb';
-import { promisify } from 'util';
+import Database from 'better-sqlite3';
 import { logger } from '../utils/logger.js';
-import type { Session, Message, User } from '@voice-agent-mastra-demo/shared';
+import type { Session, Message } from '@voice-agent-mastra-demo/shared';
 
 interface DatabaseConfig {
   path: string;
-  maxConnections: number;
-  enableWAL: boolean;
-  enableCompression: boolean;
-  memoryLimit: string;
-  tempDirectory?: string;
+  readonly: boolean;
+  fileMustExist: boolean;
+  timeout: number;
+  verbose?: (message?: unknown, ...optionalParams: unknown[]) => void;
 }
 
-interface QueryResult<T = any> {
-  data: T[];
-  rowCount: number;
-  executionTime: number;
-}
+
 
 export class DatabaseService {
-  private db: duckdb.Database;
-  private connectionPool: duckdb.Connection[] = [];
-  private currentConnectionIndex = 0;
+  private db: Database.Database;
   private config: DatabaseConfig;
   private isInitialized = false;
-  private preparedStatements = new Map<string, duckdb.Statement>();
 
   constructor(dbConfig?: Partial<DatabaseConfig>) {
     this.config = {
-      path: dbConfig?.path || ':memory:',
-      maxConnections: dbConfig?.maxConnections || 5,
-      enableWAL: dbConfig?.enableWAL || true,
-      enableCompression: dbConfig?.enableCompression || true,
-      memoryLimit: dbConfig?.memoryLimit || '1GB',
-      tempDirectory: dbConfig?.tempDirectory,
+      path: dbConfig?.path || './data/voice-agent.db',
+      readonly: dbConfig?.readonly || false,
+      fileMustExist: dbConfig?.fileMustExist || false,
+      timeout: dbConfig?.timeout || 5000,
+      verbose: dbConfig?.verbose,
     };
 
-    // Initialize database with configuration
-    this.db = new duckdb.Database(this.config.path);
-    
-    // Configure database settings
+    // Initialize SQLite database
+    this.db = new Database(this.config.path, {
+      readonly: this.config.readonly,
+      fileMustExist: this.config.fileMustExist,
+      timeout: this.config.timeout,
+      verbose: this.config.verbose,
+    });
+
+    // Configure SQLite settings for performance and safety
     this.configureDatabase();
-    
-    // Initialize connection pool
-    this.initializeConnectionPool();
   }
 
   private configureDatabase(): void {
     try {
       // Enable WAL mode for better concurrency
-      if (this.config.enableWAL) {
-        this.db.exec('PRAGMA journal_mode=WAL');
-      }
-
-      // Set memory limit
-      this.db.exec(`PRAGMA memory_limit='${this.config.memoryLimit}'`);
-
-      // Enable compression
-      if (this.config.enableCompression) {
-        this.db.exec('PRAGMA compression=zstd');
-      }
-
-      // Set temp directory if specified
-      if (this.config.tempDirectory) {
-        this.db.exec(`PRAGMA temp_directory='${this.config.tempDirectory}'`);
-      }
-
-      // Optimize for performance
-      this.db.exec('PRAGMA synchronous=NORMAL');
-      this.db.exec('PRAGMA cache_size=10000');
-      this.db.exec('PRAGMA page_size=4096');
+      this.db.exec('PRAGMA journal_mode = WAL;');
+      
+      // Set synchronous mode for performance
+      this.db.exec('PRAGMA synchronous = NORMAL;');
+      
+      // Set cache size (negative value means KB)
+      this.db.exec('PRAGMA cache_size = -64000;'); // 64MB cache
+      
+      // Enable foreign key constraints
+      this.db.exec('PRAGMA foreign_keys = ON;');
+      
+      // Set busy timeout
+      this.db.exec('PRAGMA busy_timeout = 30000;'); // 30 seconds
 
       logger.info('Database configured successfully');
     } catch (error) {
       logger.error('Failed to configure database:', error);
-      throw error;
-    }
-  }
-
-  private initializeConnectionPool(): void {
-    try {
-      for (let i = 0; i < this.config.maxConnections; i++) {
-        const connection = new duckdb.Connection(this.db);
-        this.connectionPool.push(connection);
-      }
-      logger.info(`Connection pool initialized with ${this.config.maxConnections} connections`);
-    } catch (error) {
-      logger.error('Failed to initialize connection pool:', error);
-      throw error;
-    }
-  }
-
-  private getConnection(): duckdb.Connection {
-    const connection = this.connectionPool[this.currentConnectionIndex];
-    this.currentConnectionIndex = (this.currentConnectionIndex + 1) % this.config.maxConnections;
-    return connection;
-  }
-
-  private async executeQuery<T = any>(
-    sql: string, 
-    params: unknown[] = [], 
-    connection?: duckdb.Connection
-  ): Promise<QueryResult<T>> {
-    const conn = connection || this.getConnection();
-    const startTime = Date.now();
-
-    try {
-      const all = promisify(conn.all.bind(conn));
-      const data = await all(sql) as T[];
-      const executionTime = Date.now() - startTime;
-
-      return {
-        data,
-        rowCount: data.length,
-        executionTime,
-      };
-    } catch (error) {
-      logger.error('Query execution failed:', { sql, params, error });
-      throw new Error(`Database query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  private async executeStatement(
-    sql: string, 
-    params: unknown[] = [], 
-    connection?: duckdb.Connection
-  ): Promise<{ changes: number; executionTime: number }> {
-    const conn = connection || this.getConnection();
-    const startTime = Date.now();
-
-    try {
-      const run = promisify(conn.run.bind(conn));
-      const result = await run(sql) as any;
-      const executionTime = Date.now() - startTime;
-
-      return {
-        changes: result?.changes || 0,
-        executionTime,
-      };
-    } catch (error) {
-      logger.error('Statement execution failed:', { sql, params, error });
-      throw new Error(`Database statement failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  private async executeTransaction<T>(
-    operations: (connection: duckdb.Connection) => Promise<T>
-  ): Promise<T> {
-    const connection = this.getConnection();
-    
-    try {
-      // Start transaction
-      await promisify(connection.run.bind(connection))('BEGIN TRANSACTION');
-      
-      // Execute operations
-      const result = await operations(connection);
-      
-      // Commit transaction
-      await promisify(connection.run.bind(connection))('COMMIT');
-      
-      return result;
-    } catch (error) {
-      // Rollback on error
-      try {
-        await promisify(connection.run.bind(connection))('ROLLBACK');
-      } catch (rollbackError) {
-        logger.error('Failed to rollback transaction:', rollbackError);
-      }
       throw error;
     }
   }
@@ -181,13 +72,10 @@ export class DatabaseService {
       logger.info('Initializing database...');
       
       // Create tables if they don't exist
-      await this.createTables();
+      this.createTables();
       
       // Create indexes for better performance
-      await this.createIndexes();
-      
-      // Create prepared statements
-      await this.prepareStatements();
+      this.createIndexes();
       
       this.isInitialized = true;
       logger.info('Database initialized successfully');
@@ -197,104 +85,104 @@ export class DatabaseService {
     }
   }
 
-  private async createTables(): Promise<void> {
+  private createTables(): void {
     // Sessions table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS sessions (
-        id VARCHAR PRIMARY KEY,
-        user_id VARCHAR NOT NULL,
-        start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        end_time TIMESTAMP,
-        status VARCHAR(20) DEFAULT 'active',
-        conversation_state JSON,
-        metadata JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        start_time TEXT DEFAULT (datetime('now')),
+        end_time TEXT,
+        status TEXT DEFAULT 'active',
+        conversation_state TEXT,
+        metadata TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
       )
     `);
 
     // Messages table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS messages (
-        id VARCHAR PRIMARY KEY,
-        session_id VARCHAR NOT NULL,
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
         content TEXT NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id VARCHAR NOT NULL,
-        type VARCHAR(20) NOT NULL,
+        timestamp TEXT DEFAULT (datetime('now')),
+        user_id TEXT NOT NULL,
+        type TEXT NOT NULL,
         confidence REAL DEFAULT 1.0,
-        metadata JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (session_id) REFERENCES sessions(id)
       )
     `);
 
     // Users table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS users (
-        id VARCHAR PRIMARY KEY,
-        name VARCHAR NOT NULL,
-        email VARCHAR UNIQUE NOT NULL,
-        preferences JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        preferences TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
       )
     `);
 
     // Analytics table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS analytics (
-        id VARCHAR PRIMARY KEY,
-        event_type VARCHAR NOT NULL,
-        session_id VARCHAR,
-        user_id VARCHAR,
-        metadata JSON,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        id TEXT PRIMARY KEY,
+        event_type TEXT NOT NULL,
+        session_id TEXT,
+        user_id TEXT,
+        metadata TEXT,
+        timestamp TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (session_id) REFERENCES sessions(id),
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
 
     // Conversation summaries table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS conversation_summaries (
-        id VARCHAR PRIMARY KEY,
-        session_id VARCHAR NOT NULL,
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
         summary TEXT NOT NULL,
-        key_points JSON,
-        entities JSON,
-        sentiment VARCHAR(20),
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        key_points TEXT,
+        entities TEXT,
+        sentiment TEXT,
+        timestamp TEXT DEFAULT (datetime('now')),
+        created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (session_id) REFERENCES sessions(id)
       )
     `);
 
     // Transcription messages table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS transcription_messages (
-        id VARCHAR PRIMARY KEY,
-        session_id VARCHAR NOT NULL,
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
         content TEXT NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        timestamp TEXT DEFAULT (datetime('now')),
         is_final BOOLEAN DEFAULT FALSE,
         confidence REAL DEFAULT 0.0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (session_id) REFERENCES sessions(id)
       )
     `);
 
     // Entities table
-    await this.executeStatement(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS entities (
-        id VARCHAR PRIMARY KEY,
-        session_id VARCHAR NOT NULL,
-        type VARCHAR NOT NULL,
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        type TEXT NOT NULL,
         value TEXT NOT NULL,
         confidence REAL DEFAULT 1.0,
-        metadata JSON,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        message_id VARCHAR,
+        metadata TEXT,
+        timestamp TEXT DEFAULT (datetime('now')),
+        message_id TEXT,
         FOREIGN KEY (session_id) REFERENCES sessions(id)
       )
     `);
@@ -302,384 +190,287 @@ export class DatabaseService {
     logger.info('Database tables created successfully');
   }
 
-  private async createIndexes(): Promise<void> {
-    // Additional indexes for better query performance
+  private createIndexes(): void {
     const indexes = [
-      'CREATE INDEX IF NOT EXISTS idx_sessions_user_status ON sessions(user_id, status)',
-      'CREATE INDEX IF NOT EXISTS idx_messages_session_timestamp ON messages(session_id, timestamp)',
-      'CREATE INDEX IF NOT EXISTS idx_messages_type_timestamp ON messages(type, timestamp)',
-      'CREATE INDEX IF NOT EXISTS idx_analytics_session_event ON analytics(session_id, event_type)',
+      'CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)',
+      'CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_type ON messages(type)',
+      'CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics(event_type)',
+      'CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON analytics(timestamp)',
+      'CREATE INDEX IF NOT EXISTS idx_entities_session_id ON entities(session_id)',
+      'CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)',
     ];
 
-    for (const indexSql of indexes) {
+    indexes.forEach(indexSql => {
       try {
-        await this.executeStatement(indexSql);
+        this.db.exec(indexSql);
       } catch (error) {
-        // Ignore index creation errors for now
-        logger.warn(`Failed to create index: ${indexSql}`, error);
+        logger.warn('Failed to create index:', { indexSql, error });
       }
-    }
+    });
+
+    logger.info('Database indexes created successfully');
   }
 
-  private async prepareStatements(): Promise<void> {
-    // For now, skip prepared statements to avoid conflicts
-    // TODO: Implement proper prepared statement management
-    logger.info('Prepared statements disabled for now');
-  }
-
-  // Enhanced Session operations
+  // Session operations
   async createSession(session: Session): Promise<Session> {
-    return this.executeTransaction(async (connection) => {
-      await this.executeStatement(
-        `INSERT INTO sessions (id, user_id, start_time, status, metadata)
-         VALUES (?, ?, ?, ?, ?)`,
-        [
-          session.id,
-          session.userId,
-          session.startTime.toISOString(),
-          session.status,
-          JSON.stringify(session.metadata || {})
-        ],
-        connection
+    const startTime = Date.now();
+    
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO sessions (id, user_id, start_time, status, metadata)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+      stmt.run(
+        session.id,
+        session.userId,
+        session.startTime.toISOString(),
+        session.status,
+        JSON.stringify(session.metadata || {})
       );
 
       // Log analytics event
-      await this.executeStatement(
-        'INSERT INTO analytics (id, event_type, session_id, user_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?, ?)',
-        ['session_created', session.id, session.userId, JSON.stringify({ status: session.status })],
-        connection
+      const { generateId } = await import('@voice-agent-mastra-demo/shared');
+      const analyticsStmt = this.db.prepare(`
+        INSERT INTO analytics (id, event_type, session_id, user_id, metadata)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+      analyticsStmt.run(
+        generateId(),
+        'session_created',
+        session.id,
+        session.userId,
+        JSON.stringify({ status: session.status })
       );
 
+      const executionTime = Date.now() - startTime;
+      logger.info(`Created session ${session.id} in ${executionTime}ms`);
+      
       return session;
-    });
+    } catch (error) {
+      logger.error('Error creating session:', { 
+        sessionId: session.id, 
+        error: error instanceof Error ? error.message : error 
+      });
+      throw new Error(`Failed to create session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async getSession(sessionId: string): Promise<Session | null> {
-    const result = await this.executeQuery(
-      'SELECT * FROM sessions WHERE id = ?',
-      [sessionId]
-    );
+    try {
+      const stmt = this.db.prepare('SELECT * FROM sessions WHERE id = ?');
+      const row = stmt.get(sessionId) as any;
 
-    if (result.data.length === 0) return null;
+      if (!row) return null;
 
-    const row = result.data[0] as any;
-    return {
-      id: row.id,
-      userId: row.user_id,
-      startTime: new Date(row.start_time),
-      endTime: row.end_time ? new Date(row.end_time) : undefined,
-      status: row.status,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
-    };
+      return {
+        id: row.id,
+        userId: row.user_id,
+        startTime: new Date(row.start_time),
+        endTime: row.end_time ? new Date(row.end_time) : undefined,
+        status: row.status,
+        conversationState: row.conversation_state ? JSON.parse(row.conversation_state) : undefined,
+        metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      };
+    } catch (error) {
+      logger.error('Error getting session:', { sessionId, error });
+      throw new Error(`Failed to get session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async updateSession(sessionId: string, updates: Partial<Session>): Promise<void> {
-    const setClauses: string[] = [];
-    const values: unknown[] = [];
+    try {
+      const setClauses: string[] = [];
+      const values: unknown[] = [];
 
-    if (updates.status) {
-      setClauses.push('status = ?');
-      values.push(updates.status);
-    }
-    if (updates.endTime) {
-      setClauses.push('end_time = ?');
-      values.push(updates.endTime.toISOString());
-    }
-    if (updates.metadata) {
-      setClauses.push('metadata = ?');
-      values.push(JSON.stringify(updates.metadata));
-    }
+      if (updates.status) {
+        setClauses.push('status = ?');
+        values.push(updates.status);
+      }
+      if (updates.endTime) {
+        setClauses.push('end_time = ?');
+        values.push(updates.endTime.toISOString());
+      }
+      if (updates.metadata) {
+        setClauses.push('metadata = ?');
+        values.push(JSON.stringify(updates.metadata));
+      }
+      if (updates.conversationState) {
+        setClauses.push('conversation_state = ?');
+        values.push(JSON.stringify(updates.conversationState));
+      }
 
-    setClauses.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(sessionId);
+      setClauses.push('updated_at = datetime(\'now\')');
+      values.push(sessionId);
 
-    await this.executeStatement(
-      `UPDATE sessions SET ${setClauses.join(', ')} WHERE id = ?`,
-      values
-    );
-
-    // Log analytics event
-    await this.executeStatement(
-      'INSERT INTO analytics (id, event_type, session_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?)',
-      ['session_updated', sessionId, JSON.stringify(updates)]
-    );
-  }
-
-  async deleteSession(sessionId: string): Promise<void> {
-    await this.executeTransaction(async (connection) => {
-      // Log analytics event before deletion
-      await this.executeStatement(
-        'INSERT INTO analytics (id, event_type, session_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?)',
-        ['session_deleted', sessionId, JSON.stringify({ deleted_at: new Date().toISOString() })],
-        connection
-      );
-
-      await this.executeStatement(
-        'DELETE FROM sessions WHERE id = ?',
-        [sessionId],
-        connection
-      );
-    });
-  }
-
-  async getActiveSessions(): Promise<Session[]> {
-    const result = await this.executeQuery(
-      'SELECT * FROM sessions WHERE status = \'active\' ORDER BY start_time DESC'
-    );
-
-    return result.data.map((row: any) => ({
-      id: row.id,
-      userId: row.user_id,
-      startTime: new Date(row.start_time),
-      endTime: row.end_time ? new Date(row.end_time) : undefined,
-      status: row.status,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
-    }));
-  }
-
-  async getSessionsByUserId(userId: string): Promise<Session[]> {
-    const result = await this.executeQuery(
-      `SELECT * FROM sessions WHERE user_id = '${userId}' ORDER BY start_time DESC`
-    );
-
-    return result.data.map((row: any) => ({
-      id: row.id,
-      userId: row.user_id,
-      startTime: new Date(row.start_time),
-      endTime: row.end_time ? new Date(row.end_time) : undefined,
-      status: row.status,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
-    }));
-  }
-
-  // Enhanced Message operations
-  async addMessage(message: Message): Promise<Message> {
-    return this.executeTransaction(async (connection) => {
-      const confidence = message.type === 'agent' ? (message as { confidence?: number }).confidence : null;
-      const userId = message.type === 'user' ? (message as { userId: string }).userId : 'agent';
+      const stmt = this.db.prepare(`
+        UPDATE sessions SET ${setClauses.join(', ')} WHERE id = ?
+      `);
       
-      await this.executeStatement(
-        `INSERT INTO messages (id, session_id, user_id, content, timestamp, type, confidence, metadata)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          message.id,
-          message.sessionId,
-          userId,
-          message.content,
-          message.timestamp.toISOString(),
-          message.type,
-          confidence,
-          JSON.stringify((message as { metadata?: Record<string, unknown> }).metadata || {})
-        ],
-        connection
+      stmt.run(...values);
+      
+      logger.info(`Updated session ${sessionId}`);
+    } catch (error) {
+      logger.error('Error updating session:', { sessionId, error });
+      throw new Error(`Failed to update session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async updateSessionConversationState(sessionId: string, conversationState: any): Promise<void> {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE sessions SET conversation_state = ?, updated_at = datetime('now') WHERE id = ?
+      `);
+      
+      stmt.run(JSON.stringify(conversationState), sessionId);
+    } catch (error) {
+      logger.error('Error updating session conversation state:', { sessionId, error });
+      throw error;
+    }
+  }
+
+  // Message operations
+  async addMessage(message: Message): Promise<void> {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO messages (id, session_id, user_id, content, timestamp, type, confidence, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+             const userId = message.type === 'user' ? (message as any).userId : 'agent';
+       
+       stmt.run(
+        message.id,
+        message.sessionId,
+        userId,
+        message.content,
+        message.timestamp.toISOString(),
+        message.type,
+        message.type === 'agent' ? (message as any).confidence || 1.0 : 1.0,
+        JSON.stringify((message as any).metadata || {})
       );
 
       // Log analytics event
-      await this.executeStatement(
-        'INSERT INTO analytics (id, event_type, session_id, user_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?, ?)',
-        ['message_created', message.sessionId, userId, JSON.stringify({ type: message.type, content_length: message.content.length })],
-        connection
+      const { generateId } = await import('@voice-agent-mastra-demo/shared');
+      const analyticsStmt = this.db.prepare(`
+        INSERT INTO analytics (id, event_type, session_id, user_id, metadata)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+             analyticsStmt.run(
+        generateId(),
+        'message_added',
+        message.sessionId,
+        userId,
+        JSON.stringify({ type: message.type })
       );
 
-      return message;
-    });
+      logger.info(`Added message ${message.id} to session ${message.sessionId}`);
+    } catch (error) {
+      logger.error('Error adding message:', { messageId: message.id, error });
+      throw new Error(`Failed to add message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async getSessionMessages(sessionId: string): Promise<Message[]> {
-    const result = await this.executeQuery(
-      'SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC',
-      [sessionId]
-    );
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC
+      `);
+      
+      const rows = stmt.all(sessionId) as any[];
 
-    return result.data.map((row: any) => ({
-      id: row.id,
-      sessionId: row.session_id,
-      userId: row.user_id,
-      content: row.content,
-      timestamp: new Date(row.timestamp),
-      type: row.type,
-      ...(row.type === 'agent' && { confidence: row.confidence }),
-      ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
-    }));
-  }
-
-  async getRecentMessages(limit: number = 100): Promise<Message[]> {
-    const result = await this.executeQuery(
-      'SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?',
-      [limit]
-    );
-
-    return result.data.map((row: any) => ({
-      id: row.id,
-      sessionId: row.session_id,
-      userId: row.user_id,
-      content: row.content,
-      timestamp: new Date(row.timestamp),
-      type: row.type,
-      ...(row.type === 'agent' && { confidence: row.confidence }),
-      ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
-    }));
-  }
-
-  async getMessagesByType(type: 'user' | 'agent', limit: number = 100): Promise<Message[]> {
-    const result = await this.executeQuery(
-      'SELECT * FROM messages WHERE type = ? ORDER BY timestamp DESC LIMIT ?',
-      [type, limit]
-    );
-
-    return result.data.map((row: any) => ({
-      id: row.id,
-      sessionId: row.session_id,
-      userId: row.user_id,
-      content: row.content,
-      timestamp: new Date(row.timestamp),
-      type: row.type,
-      ...(row.type === 'agent' && { confidence: row.confidence }),
-      ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
-    }));
-  }
-
-  // Enhanced User operations
-  async createUser(user: User): Promise<User> {
-    return this.executeTransaction(async (connection) => {
-      await this.executeStatement(
-        `INSERT INTO users (id, name, email, preferences)
-         VALUES (?, ?, ?, ?)`,
-        [user.id, user.name, user.email, JSON.stringify(user.preferences)],
-        connection
-      );
-
-      // Log analytics event
-      await this.executeStatement(
-        'INSERT INTO analytics (id, event_type, user_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?)',
-        ['user_created', user.id, JSON.stringify({ email: user.email })],
-        connection
-      );
-
-      return user;
-    });
-  }
-
-  async getUser(userId: string): Promise<User | null> {
-    const result = await this.executeQuery(
-      'SELECT * FROM users WHERE id = ?',
-      [userId]
-    );
-
-    if (result.data.length === 0) return null;
-
-    const row = result.data[0] as any;
-    return {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      preferences: JSON.parse(row.preferences),
-    };
-  }
-
-  async getUserByEmail(email: string): Promise<User | null> {
-    const result = await this.executeQuery(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
-
-    if (result.data.length === 0) return null;
-
-    const row = result.data[0] as any;
-    return {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      preferences: JSON.parse(row.preferences),
-    };
-  }
-
-  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
-    const setClauses: string[] = [];
-    const values: unknown[] = [];
-
-    if (updates.name) {
-      setClauses.push('name = ?');
-      values.push(updates.name);
+      return rows.map((row: any) => ({
+        id: row.id,
+        sessionId: row.session_id,
+        userId: row.user_id,
+        content: row.content,
+        timestamp: new Date(row.timestamp),
+        type: row.type,
+        ...(row.type === 'agent' && { confidence: row.confidence }),
+        ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
+      }));
+    } catch (error) {
+      logger.error('Error getting session messages:', { sessionId, error });
+      throw new Error(`Failed to get session messages: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    if (updates.email) {
-      setClauses.push('email = ?');
-      values.push(updates.email);
+  }
+
+  // Transcription operations
+  async storeTranscriptionMessage(transcription: any): Promise<void> {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO transcription_messages (id, session_id, content, timestamp, is_final, confidence)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      
+      stmt.run(
+        transcription.id,
+        transcription.sessionId,
+        transcription.content,
+        transcription.timestamp.toISOString(),
+        transcription.isFinal,
+        transcription.confidence
+      );
+    } catch (error) {
+      logger.error('Error storing transcription message:', error);
+      throw error;
     }
-    if (updates.preferences) {
-      setClauses.push('preferences = ?');
-      values.push(JSON.stringify(updates.preferences));
+  }
+
+  // Summary operations
+  async storeConversationSummary(summary: any): Promise<void> {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO conversation_summaries (id, session_id, summary, key_points, entities, sentiment, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      stmt.run(
+        summary.id,
+        summary.sessionId,
+        summary.summary,
+        JSON.stringify(summary.keyPoints),
+        JSON.stringify(summary.entities),
+        summary.sentiment,
+        summary.timestamp.toISOString()
+      );
+    } catch (error) {
+      logger.error('Error storing conversation summary:', error);
+      throw error;
     }
-
-    setClauses.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(userId);
-
-    await this.executeStatement(
-      `UPDATE users SET ${setClauses.join(', ')} WHERE id = ?`,
-      values
-    );
-
-    // Log analytics event
-    await this.executeStatement(
-      'INSERT INTO analytics (id, event_type, user_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?)',
-      ['user_updated', userId, JSON.stringify(updates)]
-    );
   }
 
-  // Analytics operations
-  async logEvent(eventType: string, sessionId?: string, userId?: string, metadata?: Record<string, unknown>): Promise<void> {
-    await this.executeStatement(
-      'INSERT INTO analytics (id, event_type, session_id, user_id, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?, ?, ?)',
-      [eventType, sessionId, userId, JSON.stringify(metadata || {})]
-    );
+  async getConversationSummary(sessionId: string): Promise<any | null> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM conversation_summaries WHERE session_id = ? ORDER BY timestamp DESC LIMIT 1
+      `);
+      
+      const row = stmt.get(sessionId) as any;
+      
+      if (!row) return null;
+      
+      return {
+        id: row.id,
+        sessionId: row.session_id,
+        summary: row.summary,
+        keyPoints: JSON.parse(row.key_points || '[]'),
+        entities: JSON.parse(row.entities || '[]'),
+        sentiment: row.sentiment,
+        timestamp: new Date(row.timestamp),
+      };
+    } catch (error) {
+      logger.error('Error getting conversation summary:', error);
+      throw error;
+    }
   }
 
-  async getAnalytics(limit: number = 100): Promise<any[]> {
-    const result = await this.executeQuery(
-      'SELECT * FROM analytics ORDER BY created_at DESC LIMIT ?',
-      [limit]
-    );
-
-    return result.data.map((row: any) => ({
-      id: row.id,
-      eventType: row.event_type,
-      sessionId: row.session_id,
-      userId: row.user_id,
-      metadata: row.metadata ? JSON.parse(row.metadata) : {},
-      createdAt: new Date(row.created_at),
-    }));
-  }
-
-  // Cleanup operations
-  async cleanupExpiredSessions(): Promise<number> {
-    return this.executeTransaction(async (connection) => {
-      // Log cleanup event
-      await this.executeStatement(
-        'INSERT INTO analytics (id, event_type, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?)',
-        ['cleanup_started', JSON.stringify({ timestamp: new Date().toISOString() })],
-        connection
-      );
-
-      const result = await this.executeStatement(
-        `UPDATE sessions 
-         SET status = 'ended', end_time = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-         WHERE status = 'active' 
-         AND start_time < datetime('now', '-30 minutes')`,
-        [],
-        connection
-      );
-
-      // Log cleanup completion
-      await this.executeStatement(
-        'INSERT INTO analytics (id, event_type, metadata) VALUES (nextval(\'analytics_id_seq\'), ?, ?)',
-        ['cleanup_completed', JSON.stringify({ sessions_ended: result.changes })],
-        connection
-      );
-
-      return result.changes;
-    });
-  }
-
+  // Database stats
   async getDatabaseStats(): Promise<{
     sessions: number;
     messages: number;
@@ -689,21 +480,25 @@ export class DatabaseService {
     databaseSize: string;
   }> {
     try {
-      const [sessionsResult, messagesResult, usersResult, activeSessionsResult, analyticsResult] = await Promise.all([
-        this.executeQuery('SELECT COUNT(*) as count FROM sessions').catch(() => ({ data: [{ count: 0 }] })),
-        this.executeQuery('SELECT COUNT(*) as count FROM messages').catch(() => ({ data: [{ count: 0 }] })),
-        this.executeQuery('SELECT COUNT(*) as count FROM users').catch(() => ({ data: [{ count: 0 }] })),
-        this.executeQuery('SELECT COUNT(*) as count FROM sessions WHERE status = ?', ['active']).catch(() => ({ data: [{ count: 0 }] })),
-        this.executeQuery('SELECT COUNT(*) as count FROM analytics').catch(() => ({ data: [{ count: 0 }] })),
-      ]);
+      const sessionsStmt = this.db.prepare('SELECT COUNT(*) as count FROM sessions');
+      const messagesStmt = this.db.prepare('SELECT COUNT(*) as count FROM messages');
+      const usersStmt = this.db.prepare('SELECT COUNT(*) as count FROM users');
+      const activeSessionsStmt = this.db.prepare('SELECT COUNT(*) as count FROM sessions WHERE status = ?');
+      const analyticsStmt = this.db.prepare('SELECT COUNT(*) as count FROM analytics');
+
+      const sessionsResult = sessionsStmt.get() as any;
+      const messagesResult = messagesStmt.get() as any;
+      const usersResult = usersStmt.get() as any;
+      const activeSessionsResult = activeSessionsStmt.get('active') as any;
+      const analyticsResult = analyticsStmt.get() as any;
 
       return {
-        sessions: sessionsResult.data[0]?.count || 0,
-        messages: messagesResult.data[0]?.count || 0,
-        users: usersResult.data[0]?.count || 0,
-        activeSessions: activeSessionsResult.data[0]?.count || 0,
-        totalAnalytics: analyticsResult.data[0]?.count || 0,
-        databaseSize: this.formatBytes(0),
+        sessions: sessionsResult?.count || 0,
+        messages: messagesResult?.count || 0,
+        users: usersResult?.count || 0,
+        activeSessions: activeSessionsResult?.count || 0,
+        totalAnalytics: analyticsResult?.count || 0,
+        databaseSize: this.formatBytes(0), // SQLite doesn't easily provide size info
       };
     } catch (error) {
       logger.error('Error getting database stats:', error);
@@ -726,41 +521,17 @@ export class DatabaseService {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  async close(): Promise<void> {
-    try {
-      // Close prepared statements
-      for (const statement of this.preparedStatements.values()) {
-        statement.finalize();
-      }
-      this.preparedStatements.clear();
-
-      // Close connection pool
-      for (const connection of this.connectionPool) {
-        await promisify(connection.close.bind(connection))();
-      }
-      this.connectionPool = [];
-
-      // Close database
-      await promisify(this.db.close.bind(this.db))();
-      
-      this.isInitialized = false;
-      logger.info('Database connection closed');
-    } catch (error) {
-      logger.error('Error closing database connection:', error);
-      throw error;
-    }
-  }
-
   // Health check
   async healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; details: string }> {
     try {
       const startTime = Date.now();
-      await this.executeQuery('SELECT 1 as health_check');
+      const stmt = this.db.prepare('SELECT 1 as health_check');
+      stmt.get();
       const responseTime = Date.now() - startTime;
 
       return {
         status: 'healthy',
-        details: `Database responding in ${responseTime}ms with ${this.connectionPool.length} active connections`,
+        details: `Database responding in ${responseTime}ms`,
       };
     } catch (error) {
       return {
@@ -770,112 +541,63 @@ export class DatabaseService {
     }
   }
 
-  // Public method for testing queries
-  async testQuery(sql: string, params: unknown[] = []): Promise<any> {
+  // Cleanup operations
+  async cleanupExpiredSessions(): Promise<number> {
     try {
-      const result = await this.executeQuery(sql, params);
-      return result;
+      const expiredTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // 24 hours ago
+      
+      const stmt = this.db.prepare(`
+        DELETE FROM sessions 
+        WHERE status = 'active' 
+        AND start_time < ? 
+        AND updated_at < ?
+      `);
+      
+      const result = stmt.run(expiredTime, expiredTime);
+      return result.changes || 0;
     } catch (error) {
-      logger.error('Test query failed:', error);
+      logger.error('Error cleaning up expired sessions:', error);
+      return 0;
+    }
+  }
+
+  async close(): Promise<void> {
+    try {
+      this.db.close();
+      this.isInitialized = false;
+      logger.info('Database connection closed');
+    } catch (error) {
+      logger.error('Error closing database connection:', error);
       throw error;
     }
   }
 
-  // New methods for conversation summaries
-  async storeConversationSummary(summary: any): Promise<void> {
-    await this.executeStatement(
-      `INSERT INTO conversation_summaries (id, session_id, summary, key_points, entities, sentiment, timestamp)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        summary.id,
-        summary.sessionId,
-        summary.summary,
-        JSON.stringify(summary.keyPoints),
-        JSON.stringify(summary.entities),
-        summary.sentiment,
-        summary.timestamp,
-      ]
-    );
-  }
-
-  async getConversationSummary(sessionId: string): Promise<any | null> {
-    const result = await this.executeQuery<any>(
-      `SELECT * FROM conversation_summaries WHERE session_id = ? ORDER BY timestamp DESC LIMIT 1`,
-      [sessionId]
-    );
-    
-    if (result.data.length === 0) return null;
-    
-    const row = result.data[0];
-    return {
-      id: row.id,
-      sessionId: row.session_id,
-      summary: row.summary,
-      keyPoints: JSON.parse(row.key_points || '[]'),
-      entities: JSON.parse(row.entities || '[]'),
-      sentiment: row.sentiment,
-      timestamp: new Date(row.timestamp),
-    };
-  }
-
-  // New methods for transcription messages
-  async storeTranscriptionMessage(transcription: any): Promise<void> {
-    await this.executeStatement(
-      `INSERT INTO transcription_messages (id, session_id, content, timestamp, is_final, confidence)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        transcription.id,
-        transcription.sessionId,
-        transcription.content,
-        transcription.timestamp,
-        transcription.isFinal,
-        transcription.confidence,
-      ]
-    );
-  }
-
-  async getSessionTranscriptions(sessionId: string): Promise<any[]> {
-    const result = await this.executeQuery<any>(
-      `SELECT * FROM transcription_messages WHERE session_id = ? ORDER BY timestamp ASC`,
-      [sessionId]
-    );
-    
-    return result.data.map(row => ({
-      id: row.id,
-      sessionId: row.session_id,
-      content: row.content,
-      timestamp: new Date(row.timestamp),
-      isFinal: row.is_final,
-      confidence: row.confidence,
-    }));
-  }
-
-  async updateSessionConversationState(sessionId: string, conversationState: any): Promise<void> {
-    await this.executeStatement(
-      `UPDATE sessions SET conversation_state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [JSON.stringify(conversationState), sessionId]
-    );
-  }
-
-  /**
-   * Persist extracted entities for a session
-   */
+  // Store entities
   async storeEntities(sessionId: string, entities: import('@voice-agent-mastra-demo/shared').Entity[]): Promise<void> {
     if (!entities.length) return;
 
-    const insertSQL = `INSERT INTO entities (id, session_id, type, value, confidence, metadata, timestamp)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO entities (id, session_id, type, value, confidence, metadata, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
 
-    for (const ent of entities) {
-      await this.executeStatement(insertSQL, [
-        ent.id,
-        sessionId,
-        ent.type,
-        ent.value,
-        ent.confidence,
-        JSON.stringify(ent.metadata ?? {}),
-        new Date(),
-      ]);
+      for (const entity of entities) {
+        stmt.run(
+          entity.id,
+          sessionId,
+          entity.type,
+          entity.value,
+          entity.confidence,
+          JSON.stringify(entity.metadata ?? {}),
+          new Date().toISOString()
+        );
+      }
+
+      logger.info(`Stored ${entities.length} entities for session ${sessionId}`);
+    } catch (error) {
+      logger.error('Error storing entities:', error);
+      throw error;
     }
   }
 }

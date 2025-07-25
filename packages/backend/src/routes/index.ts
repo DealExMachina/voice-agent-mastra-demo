@@ -68,7 +68,7 @@ router.get('/', (req, res) => {
   res.json({
     name: 'Voice Agent Mastra Demo API',
     version: '1.0.0',
-    description: 'RESTful API for voice agent communication with Mastra, LiveKit, and DuckDB',
+    description: 'RESTful API for voice agent communication with Mastra, LiveKit, and SQLite',
     documentation: {
       health: `${API_PREFIX}/health`,
       sessions: {
@@ -150,7 +150,7 @@ router.get('/', (req, res) => {
     },
     features: [
       'Real-time voice communication with LiveKit',
-      'Session management with DuckDB persistence',
+      'Session management with SQLite persistence',
       'Message history and analytics',
       'User management and preferences',
       'Comprehensive analytics and monitoring',
@@ -162,7 +162,7 @@ router.get('/', (req, res) => {
     ],
     technologies: [
       'Express.js',
-      'DuckDB',
+      'SQLite',
       'LiveKit',
       'Socket.IO',
       'Zod validation',

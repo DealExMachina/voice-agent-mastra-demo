@@ -1,18 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DatabaseService } from '../services/database.js';
-import { mockSessions, mockMessages, mockUsers, createTestSession, createTestMessage, createTestUser } from './fixtures.js';
 
-// Mock DuckDB completely
-vi.mock('duckdb', () => ({
-  Database: vi.fn().mockImplementation(() => ({
+// Mock better-sqlite3 completely
+vi.mock('better-sqlite3', () => ({
+  default: vi.fn().mockImplementation(() => ({
     exec: vi.fn(),
-    all: vi.fn(),
-    close: vi.fn(),
-  })),
-  Connection: vi.fn().mockImplementation(() => ({
-    exec: vi.fn(),
-    all: vi.fn().mockResolvedValue([]),
-    run: vi.fn().mockResolvedValue(undefined),
+    prepare: vi.fn().mockReturnValue({
+      run: vi.fn().mockReturnValue({ changes: 1 }),
+      get: vi.fn(),
+      all: vi.fn().mockReturnValue([]),
+    }),
     close: vi.fn(),
   })),
 }));
@@ -82,13 +79,9 @@ describe('DatabaseService', () => {
     });
   });
 
-  describe('User Operations', () => {
-    it('should have createUser method', () => {
-      expect(typeof dbService.createUser).toBe('function');
-    });
-
-    it('should have getUser method', () => {
-      expect(typeof dbService.getUser).toBe('function');
+  describe('Health Check', () => {
+    it('should have healthCheck method', () => {
+      expect(typeof dbService.healthCheck).toBe('function');
     });
   });
 });
