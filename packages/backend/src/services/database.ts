@@ -232,20 +232,39 @@ export class DatabaseService {
         JSON.stringify(session.metadata || {})
       );
 
-      // Log analytics event
-      const { generateId } = await import('@voice-agent-mastra-demo/shared');
-      const analyticsStmt = this.db.prepare(`
-        INSERT INTO analytics (id, event_type, session_id, user_id, metadata)
-        VALUES (?, ?, ?, ?, ?)
-      `);
+      // Check if user exists before logging analytics
+      const userExists = this.db.prepare('SELECT id FROM users WHERE id = ?').get(session.userId);
       
-      analyticsStmt.run(
-        generateId(),
-        'session_created',
-        session.id,
-        session.userId,
-        JSON.stringify({ status: session.status })
-      );
+      if (userExists) {
+        // Log analytics event only if user exists
+        const { generateId } = await import('@voice-agent-mastra-demo/shared');
+        const analyticsStmt = this.db.prepare(`
+          INSERT INTO analytics (id, event_type, session_id, user_id, metadata)
+          VALUES (?, ?, ?, ?, ?)
+        `);
+        
+        analyticsStmt.run(
+          generateId(),
+          'session_created',
+          session.id,
+          session.userId,
+          JSON.stringify({ status: session.status })
+        );
+      } else {
+        // Log analytics without user_id constraint
+        const { generateId } = await import('@voice-agent-mastra-demo/shared');
+        const analyticsStmt = this.db.prepare(`
+          INSERT INTO analytics (id, event_type, session_id, metadata)
+          VALUES (?, ?, ?, ?)
+        `);
+        
+        analyticsStmt.run(
+          generateId(),
+          'session_created',
+          session.id,
+          JSON.stringify({ status: session.status, userId: session.userId })
+        );
+      }
 
       const executionTime = Date.now() - startTime;
       logger.info(`Created session ${session.id} in ${executionTime}ms`);
@@ -597,6 +616,290 @@ export class DatabaseService {
       logger.info(`Stored ${entities.length} entities for session ${sessionId}`);
     } catch (error) {
       logger.error('Error storing entities:', error);
+      throw error;
+    }
+  }
+
+  // Analytics operations
+  async logEvent(eventType: string, sessionId?: string, userId?: string, metadata?: any): Promise<void> {
+    try {
+      const { generateId } = await import('@voice-agent-mastra-demo/shared');
+      const stmt = this.db.prepare(`
+        INSERT INTO analytics (id, event_type, session_id, user_id, metadata)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+      stmt.run(
+        generateId(),
+        eventType,
+        sessionId || null,
+        userId || null,
+        JSON.stringify(metadata || {})
+      );
+    } catch (error) {
+      logger.error('Error logging event:', error);
+      throw error;
+    }
+  }
+
+  async getAnalytics(limit: number = 1000): Promise<any[]> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM analytics ORDER BY timestamp DESC LIMIT ?
+      `);
+      
+      const rows = stmt.all(limit) as any[];
+      
+      return rows.map(row => ({
+        id: row.id,
+        eventType: row.event_type,
+        sessionId: row.session_id,
+        userId: row.user_id,
+        metadata: row.metadata ? JSON.parse(row.metadata) : {},
+        timestamp: new Date(row.timestamp),
+      }));
+    } catch (error) {
+      logger.error('Error getting analytics:', error);
+      return [];
+    }
+  }
+
+  // User operations
+  async createUser(user: any): Promise<any> {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO users (id, name, email, preferences)
+        VALUES (?, ?, ?, ?)
+      `);
+      
+      stmt.run(
+        user.id,
+        user.name,
+        user.email,
+        JSON.stringify(user.preferences || {})
+      );
+
+      logger.info(`Created user ${user.id}`);
+      return user;
+    } catch (error) {
+      logger.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  async getUser(userId: string): Promise<any | null> {
+    try {
+      const stmt = this.db.prepare('SELECT * FROM users WHERE id = ?');
+      const row = stmt.get(userId) as any;
+
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        preferences: row.preferences ? JSON.parse(row.preferences) : {},
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      };
+    } catch (error) {
+      logger.error('Error getting user:', error);
+      return null;
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<any | null> {
+    try {
+      const stmt = this.db.prepare('SELECT * FROM users WHERE email = ?');
+      const row = stmt.get(email) as any;
+
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        preferences: row.preferences ? JSON.parse(row.preferences) : {},
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      };
+    } catch (error) {
+      logger.error('Error getting user by email:', error);
+      return null;
+    }
+  }
+
+  async updateUser(userId: string, updates: any): Promise<void> {
+    try {
+      const setClauses: string[] = [];
+      const values: unknown[] = [];
+
+      if (updates.name) {
+        setClauses.push('name = ?');
+        values.push(updates.name);
+      }
+      if (updates.email) {
+        setClauses.push('email = ?');
+        values.push(updates.email);
+      }
+      if (updates.preferences) {
+        setClauses.push('preferences = ?');
+        values.push(JSON.stringify(updates.preferences));
+      }
+
+      setClauses.push('updated_at = datetime(\'now\')');
+      values.push(userId);
+
+      const stmt = this.db.prepare(`
+        UPDATE users SET ${setClauses.join(', ')} WHERE id = ?
+      `);
+      
+      stmt.run(...values);
+      
+      logger.info(`Updated user ${userId}`);
+    } catch (error) {
+      logger.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  // Extended session operations
+  async getSessionsByUserId(userId: string): Promise<any[]> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM sessions WHERE user_id = ? ORDER BY start_time DESC
+      `);
+      
+      const rows = stmt.all(userId) as any[];
+
+      return rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        startTime: new Date(row.start_time),
+        endTime: row.end_time ? new Date(row.end_time) : undefined,
+        status: row.status,
+        conversationState: row.conversation_state ? JSON.parse(row.conversation_state) : undefined,
+        metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      }));
+    } catch (error) {
+      logger.error('Error getting sessions by user ID:', error);
+      return [];
+    }
+  }
+
+  async getActiveSessions(): Promise<any[]> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM sessions WHERE status = 'active' ORDER BY start_time DESC
+      `);
+      
+      const rows = stmt.all() as any[];
+
+      return rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        startTime: new Date(row.start_time),
+        endTime: row.end_time ? new Date(row.end_time) : undefined,
+        status: row.status,
+        conversationState: row.conversation_state ? JSON.parse(row.conversation_state) : undefined,
+        metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      }));
+    } catch (error) {
+      logger.error('Error getting active sessions:', error);
+      return [];
+    }
+  }
+
+  async deleteSession(sessionId: string): Promise<void> {
+    try {
+      // Delete related messages first (foreign key constraint)
+      const deleteMessagesStmt = this.db.prepare('DELETE FROM messages WHERE session_id = ?');
+      deleteMessagesStmt.run(sessionId);
+
+      // Delete related analytics
+      const deleteAnalyticsStmt = this.db.prepare('DELETE FROM analytics WHERE session_id = ?');
+      deleteAnalyticsStmt.run(sessionId);
+
+      // Delete related entities
+      const deleteEntitiesStmt = this.db.prepare('DELETE FROM entities WHERE session_id = ?');
+      deleteEntitiesStmt.run(sessionId);
+
+      // Delete related summaries
+      const deleteSummariesStmt = this.db.prepare('DELETE FROM conversation_summaries WHERE session_id = ?');
+      deleteSummariesStmt.run(sessionId);
+
+      // Delete related transcriptions
+      const deleteTranscriptionsStmt = this.db.prepare('DELETE FROM transcription_messages WHERE session_id = ?');
+      deleteTranscriptionsStmt.run(sessionId);
+
+      // Finally delete the session
+      const deleteSessionStmt = this.db.prepare('DELETE FROM sessions WHERE id = ?');
+      deleteSessionStmt.run(sessionId);
+
+      logger.info(`Deleted session ${sessionId} and all related data`);
+    } catch (error) {
+      logger.error('Error deleting session:', error);
+      throw error;
+    }
+  }
+
+  // Extended message operations
+  async getMessagesByType(type: 'user' | 'agent', limit: number = 100): Promise<any[]> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM messages WHERE type = ? ORDER BY timestamp DESC LIMIT ?
+      `);
+      
+      const rows = stmt.all(type, limit) as any[];
+
+      return rows.map((row: any) => ({
+        id: row.id,
+        sessionId: row.session_id,
+        userId: row.user_id,
+        content: row.content,
+        timestamp: new Date(row.timestamp),
+        type: row.type,
+        ...(row.type === 'agent' && { confidence: row.confidence }),
+        ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
+      }));
+    } catch (error) {
+      logger.error('Error getting messages by type:', error);
+      return [];
+    }
+  }
+
+  async getRecentMessages(limit: number = 100): Promise<any[]> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?
+      `);
+      
+      const rows = stmt.all(limit) as any[];
+
+      return rows.map((row: any) => ({
+        id: row.id,
+        sessionId: row.session_id,
+        userId: row.user_id,
+        content: row.content,
+        timestamp: new Date(row.timestamp),
+        type: row.type,
+        ...(row.type === 'agent' && { confidence: row.confidence }),
+        ...(row.metadata && { metadata: JSON.parse(row.metadata) }),
+      }));
+    } catch (error) {
+      logger.error('Error getting recent messages:', error);
+      return [];
+    }
+  }
+
+  // Test/debug operations
+  async testQuery(query: string): Promise<any> {
+    try {
+      const stmt = this.db.prepare(query);
+      const result = stmt.all();
+      return result;
+    } catch (error) {
+      logger.error('Error executing test query:', error);
       throw error;
     }
   }

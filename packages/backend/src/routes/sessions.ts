@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { database } from '../services/database.js';
 import { logger } from '../utils/logger.js';
-import { generateId, validateSession, safeParseSession } from '@voice-agent-mastra-demo/shared';
+import { generateId } from '@voice-agent-mastra-demo/shared';
 import type { Session } from '@voice-agent-mastra-demo/shared';
 
 const router: ReturnType<typeof Router> = Router();
@@ -78,25 +78,25 @@ router.get('/', async (req, res) => {
 
 // POST /api/sessions - Create a new session
 router.post('/', async (req, res) => {
+  let bodyResult = CreateSessionSchema.safeParse(req.body);
+  if (!bodyResult.success) {
+    return res.status(400).json({
+      error: 'Invalid request body',
+      details: bodyResult.error.issues,
+    });
+  }
+
+  const { userId, metadata } = bodyResult.data;
+
+  const session: Session = {
+    id: generateId(),
+    userId,
+    startTime: new Date(),
+    status: 'active',
+    metadata: metadata || {},
+  };
+
   try {
-    const bodyResult = CreateSessionSchema.safeParse(req.body);
-    if (!bodyResult.success) {
-      return res.status(400).json({
-        error: 'Invalid request body',
-        details: bodyResult.error.issues,
-      });
-    }
-
-    const { userId, metadata } = bodyResult.data;
-
-    const session: Session = {
-      id: generateId(),
-      userId,
-      startTime: new Date(),
-      status: 'active',
-      metadata: metadata || {},
-    };
-
     const createdSession = await database.createSession(session);
     
     logger.info(`Created session ${session.id} for user ${userId}`);
@@ -106,8 +106,15 @@ router.post('/', async (req, res) => {
       message: 'Session created successfully',
     });
   } catch (error) {
-    logger.error('Error creating session:', error);
-    res.status(500).json({ error: 'Failed to create session' });
+    logger.error('Error creating session:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      userId: bodyResult.success ? bodyResult.data.userId : undefined
+    });
+    res.status(500).json({ 
+      error: 'Failed to create session',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
@@ -129,9 +136,6 @@ router.get('/:sessionId', async (req, res) => {
     // Get session messages
     const messages = await database.getSessionMessages(sessionId);
     
-    // Get session statistics
-    const stats = await database.getDatabaseStats();
-
     res.json({
       session,
       messages,

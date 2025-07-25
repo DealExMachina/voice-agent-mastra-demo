@@ -42,8 +42,8 @@ router.get('/health', async (req, res) => {
       },
       database: {
         health,
-        sessionsCount: testResult.data[0]?.count || 0,
-        activeSessionsTest: activeSessionsTest.data.length,
+        sessionsCount: testResult[0]?.count || 0,
+        activeSessionsTest: activeSessionsTest.length,
       },
       endpoints: {
         sessions: `${API_PREFIX}/sessions`,
