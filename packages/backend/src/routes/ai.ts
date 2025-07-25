@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { database } from '../services/database.js';
 import { logger } from '../utils/logger.js';
 import { aiIntegrationService } from '../services/ai-integration.js';
-import { mastraLocalService } from '../services/mastra-local.js';
+import { mastraAgentService } from '../services/mastra-agent.js';
 import { mem0Service } from '../services/mem0.js';
 import { generateId } from '@voice-agent-mastra-demo/shared';
 import type { Message } from '@voice-agent-mastra-demo/shared';
@@ -37,10 +37,14 @@ const GetUserMemoriesSchema = z.object({
 // GET /api/ai/status - Get AI services status
 router.get('/status', async (req, res) => {
   try {
+    const mastraReady = await mastraAgentService.isReady();
+    const mem0Ready = mem0Service.isReady();
+    const aiIntegrationReady = aiIntegrationService.isReady();
+    
     const status = {
-      mastra: mastraLocalService.isReady(),
-      mem0: mem0Service.isReady(),
-      aiIntegration: aiIntegrationService.isReady(),
+      mastra: mastraReady,
+      mem0: mem0Ready,
+      aiIntegration: aiIntegrationReady,
       timestamp: new Date().toISOString(),
     };
 
@@ -290,7 +294,7 @@ router.post('/entities/extract', async (req, res) => {
       userId: 'mock-user',
     };
 
-    const result = await mastraLocalService.extractEntitiesFromMessage(mockMessage);
+    const result = await mastraAgentService.extractEntitiesFromMessage(mockMessage);
 
     logger.info(`Extracted ${result.entities.length} entities from text`);
 
@@ -312,7 +316,12 @@ router.post('/entities/extract', async (req, res) => {
 // GET /api/ai/entities/types - Get supported entity types
 router.get('/entities/types', async (req, res) => {
   try {
-    const entityTypes = await mastraLocalService.getSupportedEntityTypes();
+    // Return supported entity types
+    const entityTypes = [
+      'person', 'organization', 'location', 'date', 'time', 'money',
+      'percentage', 'email', 'phone', 'url', 'product', 'service',
+      'event', 'concept', 'custom'
+    ];
     
     res.json({
       entityTypes,

@@ -1,6 +1,6 @@
 {
   "name": "@voice-agent-mastra-demo/backend",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -9,6 +9,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.3.23",
+    "@mastra/core": "^0.11.1",
+    "@mastra/mem0": "^0.1.5",
+    "@mastra/memory": "^0.11.5",
     "@voice-agent-mastra-demo/shared": "workspace:*",
     "better-sqlite3": "^9.2.2",
     "compression": "^1.8.1",

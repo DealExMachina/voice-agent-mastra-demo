@@ -33,6 +33,8 @@ const envSchema = z.object({
   SESSION_TIMEOUT_MS: z.string().transform(Number).pipe(z.number().positive()).default('1800000'), // 30 minutes
   
   // Optional AI configuration
+  OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
   MASTRA_API_KEY: z.string().optional(),
   MASTRA_MODEL: z.string().optional(),
   MEM0_API_KEY: z.string().optional(),
@@ -64,6 +66,8 @@ export interface Environment {
   RATE_LIMIT_DURATION: number;
   TOKEN_RATE_LIMIT_POINTS: number;
   SESSION_TIMEOUT_MS: number;
+  OPENAI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
   MASTRA_API_KEY?: string;
   MASTRA_MODEL?: string;
   MEM0_API_KEY?: string;
@@ -75,7 +79,9 @@ export const config: Environment = env;
 
 // Helper function to check if required AI services are configured
 export function isAIServicesConfigured(): boolean {
-  return !!(config.MASTRA_API_KEY && config.MEM0_API_KEY);
+  const hasAIProvider = !!(config.OPENAI_API_KEY || config.ANTHROPIC_API_KEY);
+  const hasMemory = !!(config.MEM0_API_KEY && config.MEM0_DATABASE_URL);
+  return hasAIProvider && hasMemory;
 }
 
 // Helper function to get database configuration

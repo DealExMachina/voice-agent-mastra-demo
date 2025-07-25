@@ -1,5 +1,5 @@
 import { logger } from '../utils/logger.js';
-import { mastraLocalService } from './mastra-local.js';
+import { mastraAgentService } from './mastra-agent.js';
 import { mem0Service } from './mem0.js';
 import type { Message, Entity, Memory, EntityType, MemoryType } from '@voice-agent-mastra-demo/shared';
 
@@ -32,7 +32,8 @@ export class AIIntegrationService {
    * Initialize the AI integration service
    */
   async initialize(): Promise<void> {
-    const mastraReady = await mastraLocalService.isReady();
+    await mastraAgentService.initialize();
+    const mastraReady = await mastraAgentService.isReady();
     const mem0Ready = await mem0Service.isReady();
     this.isConfigured = mastraReady && mem0Ready;
   }
@@ -55,7 +56,7 @@ export class AIIntegrationService {
 
     try {
       // Extract entities using Mastra
-      const mastraResult = await mastraLocalService.extractEntitiesFromMessage(message);
+      const mastraResult = await mastraAgentService.extractEntitiesFromMessage(message);
       
       // Create memories for extracted entities
       const memories: Memory[] = [];
@@ -136,7 +137,7 @@ export class AIIntegrationService {
 
     try {
       // Extract entities from the entire conversation
-      const mastraResult = await mastraLocalService.extractEntitiesFromConversation(messages);
+      const mastraResult = await mastraAgentService.extractEntitiesFromConversation(messages);
       
       // Get relevant memories for context
       const relevantMemories = await this.getRelevantMemories(context);
@@ -375,9 +376,14 @@ export class AIIntegrationService {
 
     try {
       // Extract entities from transcription
-      const mastraResult = await mastraLocalService.extractEntitiesFromText(
-        transcriptionMessage.content
-      );
+      const mastraResult = await mastraAgentService.extractEntitiesFromMessage({
+        id: transcriptionMessage.id,
+        content: transcriptionMessage.content,
+        timestamp: new Date(),
+        sessionId: transcriptionMessage.sessionId,
+        type: 'user',
+        userId: 'user',
+      });
 
       // Store transcription as memory
       const transcriptionMemory: Omit<Memory, 'id' | 'timestamp'> = {
@@ -426,7 +432,7 @@ export class AIIntegrationService {
 
     try {
       // Use Mastra to generate comprehensive summary
-      const summary = await mastraLocalService.generateSummary(messages, entities);
+      const summary = await mastraAgentService.generateSummary(messages, entities);
       
       return {
         id: `summary_${Date.now()}`,

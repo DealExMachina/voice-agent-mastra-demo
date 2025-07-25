@@ -24,8 +24,8 @@ Voice Agent Mastra Demo is a cutting-edge, real-time voice interaction platform 
 ### ✨ Key Features
 
 - 🎙️ **Real-time Voice Chat** - High-quality audio communication powered by LiveKit
-- 🤖 **AI-Powered Responses** - Intelligent conversation management with Mastra framework
-- 🧠 **Memory Management** - Context-aware conversations using mem0
+- 🤖 **Real Mastra Agents** - Intelligent AI agents with entity extraction and conversation capabilities
+- 🧠 **Persistent Memory** - Long-term memory management with Mem0 integration for context-aware conversations
 - 🔄 **Real-time Sync** - WebSocket-based live updates via Socket.IO
 - 🎨 **Modern UI** - Beautiful, responsive interface built with React & Tailwind CSS
 - 🏗️ **Monorepo Architecture** - Scalable workspace structure with Turbo
@@ -115,9 +115,19 @@ LIVEKIT_API_KEY=your_livekit_api_key_here
 LIVEKIT_API_SECRET=your_livekit_api_secret_here
 LIVEKIT_URL=wss://your-livekit-server.com
 
-# Optional: AI Configuration
+# AI Configuration (Required for AI features)
+# Choose one AI provider:
+OPENAI_API_KEY=your_openai_api_key_here         # Get from https://platform.openai.com/api-keys
+# OR
+ANTHROPIC_API_KEY=your_anthropic_api_key_here   # Get from https://console.anthropic.com/
+
+# Memory Management (Required for persistent memory)
+MEM0_API_KEY=your_mem0_api_key_here             # Get from https://app.mem0.ai/
+MEM0_DATABASE_URL=your_mem0_database_url_here
+
+# Optional: Advanced Mastra Configuration
 MASTRA_API_KEY=your_mastra_api_key_here
-MEM0_API_KEY=your_mem0_api_key_here
+MASTRA_MODEL=your_mastra_model_here
 ```
 
 > **⚠️ Important**: You must configure LiveKit credentials for the application to work. Sign up at [LiveKit Cloud](https://cloud.livekit.io/) or [self-host LiveKit](https://docs.livekit.io/home/self-hosting/deployment/).
