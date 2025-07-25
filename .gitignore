@@ -107,4 +107,11 @@ Thumbs.db
 .livekit/
 
 # Mastra
-.mastra/ packages/backend/data/
+.mastra/
+
+# Database files
+packages/backend/data/
+
+# Turbo cache
+.turbo/
+*/.turbo/
