@@ -19,7 +19,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "install:all": "pnpm install",
-    "postinstall": "turbo build --filter=@voice-agent-mastra-demo/shared"
+        "postinstall": "turbo build --filter=@voice-agent-mastra-demo/shared --filter=@voice-agent-mastra-demo/agents"
   },
   "devDependencies": {
     "@types/node": "^20.17.10",

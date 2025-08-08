@@ -36,6 +36,37 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@20.19.9)(jsdom@26.1.0)
 
+  packages/agents:
+    dependencies:
+      '@voice-agent-mastra-demo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.10
+        version: 20.19.9
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.18.2
+        version: 8.37.0(@typescript-eslint/parser@8.37.0(eslint@9.31.0(jiti@1.21.7))(typescript@5.8.3))(eslint@9.31.0(jiti@1.21.7))(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.18.2
+        version: 8.37.0(eslint@9.31.0(jiti@1.21.7))(typescript@5.8.3)
+      eslint:
+        specifier: ^9.18.0
+        version: 9.31.0(jiti@1.21.7)
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.19.9)(jsdom@26.1.0)
+
   packages/backend:
     dependencies:
       '@ai-sdk/openai':
