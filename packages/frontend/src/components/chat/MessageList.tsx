@@ -9,10 +9,10 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, className }) => {
   return (
-    <div className={clsx('h-96 overflow-y-auto p-6 space-y-4', className)}>
+    <div className={clsx('h-[calc(100vh-8rem)] overflow-y-auto p-4 space-y-3', className)}>
       {messages.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
-          <p>No messages yet. Start a conversation!</p>
+        <div className="text-center text-gray-400 py-12 text-sm">
+          <p>Start a conversation…</p>
         </div>
       ) : (
         messages.map((message) => (
@@ -25,14 +25,14 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, className })
           >
             <div
               className={clsx(
-                'max-w-xs lg:max-w-md px-4 py-2 rounded-lg',
+                'max-w-[70%] px-3 py-2 rounded-2xl text-sm',
                 message.type === 'user'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-900'
               )}
             >
-              <p className="break-words">{message.content}</p>
-              <p className="text-xs opacity-75 mt-1">
+              <p className="break-words leading-relaxed">{message.content}</p>
+              <p className="text-[10px] opacity-60 mt-1">
                 {new Date(message.timestamp).toLocaleTimeString()}
               </p>
             </div>

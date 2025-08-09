@@ -1,5 +1,4 @@
 import React from 'react';
-import { Phone, PhoneOff } from 'lucide-react';
 import { Button } from '../ui/Button.js';
 import { Input } from '../ui/Input.js';
 
@@ -28,31 +27,25 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="p-6 border-t">
-      <div className="flex items-center space-x-4">
+    <div className="">
+      <div className="flex items-center gap-2">
         <Input
           type="text"
           value={inputText}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Type your message..."
+          placeholder="Message"
           disabled={disabled}
-          className="flex-1"
+          className="flex-1 rounded-full"
         />
         <Button
           onClick={onSendMessage}
           disabled={!inputText.trim() || disabled}
-          size="md"
+          size="sm"
+          variant="secondary"
+          className="rounded-full"
         >
           Send
-        </Button>
-        <Button
-          onClick={onToggleRecording}
-          variant={isRecording ? 'danger' : 'secondary'}
-          size="md"
-          className="p-3 rounded-full"
-        >
-          {isRecording ? <PhoneOff size={20} /> : <Phone size={20} />}
         </Button>
       </div>
     </div>
